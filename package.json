@@ -1,0 +1,71 @@
+{
+  "name": "screen-companion-mvp",
+  "productName": "Screen Companion",
+  "version": "0.1.0",
+  "description": "A lightweight transparent desktop screen companion MVP.",
+  "author": "Screen Companion MVP",
+  "private": true,
+  "type": "module",
+  "main": "out/main/main.cjs",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "tsc --noEmit && electron-vite build",
+    "preview": "electron-vite preview",
+    "package:win": "npm run build && electron-builder --win",
+    "package:win:portable": "npm run build && electron-builder --win portable"
+  },
+  "build": {
+    "appId": "local.screen-companion.mvp",
+    "productName": "Screen Companion",
+    "asar": true,
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    }
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "electron": "31.7.7",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.19"
+  }
+}

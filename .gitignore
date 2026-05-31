@@ -1,0 +1,16 @@
+node_modules/
+out/
+dist-electron/
+release/
+asar-extract/
+tmp-electron-test/
+*.log
+/asar-package.json
+/packaged.*.log
+/screen-companion-*.png
+/tmp-*.png
+/screen_companion_cutout_*.png
+/yuhe*.png
+/tools/
+/gh_*.msi
+/gh-*.log
