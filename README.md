@@ -9,9 +9,32 @@ The MVP is intentionally not a chatbot, productivity dashboard, browser extensio
 - Opens a transparent, frameless, always-on-top Electron window.
 - Displays a local transparent PNG character asset.
 - Lets the user drag the companion around the screen.
-- Runs a configurable lightweight work timer, defaulting to 50 minutes.
-- Shows a small reminder speech bubble when the timer finishes.
-- Provides minimal controls for start, pause, reset, interval, and closing the app.
+- Tracks continuous active screen usage locally with Electron `powerMonitor`.
+- Shows a small reminder speech bubble after the configured active usage interval.
+- Lets the user configure reminder enablement, interval, idle break threshold, and message text.
+- Provides minimal controls for settings, companion size, and closing the app.
+
+## Continuous Screen Usage Reminder
+
+The reminder is based on system activity, not a manual timer. The Electron main process polls `powerMonitor.getSystemIdleTime()` every 15 seconds:
+
+- If system idle time is below the configured break threshold, the app counts that poll interval as active usage.
+- If system idle time reaches the configured break threshold, the app treats that as a break and resets active usage.
+- When active usage reaches the configured reminder interval, the renderer shows the existing speech bubble with the configured message.
+- After a reminder fires, it does not repeatedly fire again until the user has taken an idle break.
+
+Default reminder settings:
+
+```txt
+Continuous screen reminder: enabled
+Reminder interval: 50 minutes
+Break detection: 3 idle minutes
+Reminder message: 休息一下，站起来走两步。
+```
+
+Reminder settings are saved locally in the app user data folder and restored after restart. Disabling reminders only stops reminder bubbles and reminder animation; it does not hide the companion and does not quit the app.
+
+Important limitation: this feature detects system activity and idle state. It does not detect eye gaze, attention, posture, or whether the user is physically looking at the screen.
 
 ## Run Locally
 
@@ -98,10 +121,12 @@ build/icon.ico
 - The companion image is not shown inside a rectangular photo block.
 - The companion can be dragged around the screen.
 - Open settings with the small button.
-- Set the interval to a short value such as `0.1` minutes for testing.
-- Start the timer and confirm the reminder bubble appears.
+- Confirm default reminder settings: enabled, 50 minute interval, 3 minute idle break threshold, and the default Chinese reminder message.
+- Change the reminder message, save, close the app, relaunch, and confirm the custom message persists.
+- Disable continuous screen reminders, save, and confirm the companion remains visible.
+- Re-enable reminders, set a practical short interval for manual testing, keep the system active, and confirm the reminder bubble uses the custom message.
+- Stay idle longer than the idle break threshold and confirm active usage resets safely.
 - Dismiss the reminder bubble.
-- Reset the timer.
 - Run `npm.cmd run package:win`.
 - Close any existing `Screen Companion` processes before running the installer.
 - Open the installer from `release/` and confirm the installed app launches.
@@ -122,5 +147,6 @@ Assets should be pre-cut transparent PNG, WebP, or simple GIF files. Do not use 
 - No automatic image background removal.
 - No AI chat or LLM integration.
 - No backend, login, sync, or marketplace.
+- Active usage detection is based on OS idle time, not eye-gaze detection.
 - Window position and selected character are not persisted yet.
 - The app icon is a simple placeholder.

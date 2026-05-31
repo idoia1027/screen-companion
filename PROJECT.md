@@ -47,9 +47,10 @@ Implemented and currently considered working:
 - Two selectable characters
 - Custom React pointer-based window dragging from the character image
 - Character size control through settings
-- Work timer with default 50 minute interval
-- Start / pause / reset controls
-- Test reminder flow
+- Continuous screen-usage reminder settings
+- Electron `powerMonitor` based active usage detection
+- Local persistence for reminder enablement, trigger interval, idle break threshold, and message
+- Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
 - Windows installer, portable exe, and `win-unpacked` packaging output
@@ -81,6 +82,14 @@ Latest validated behavior from today's session:
 - Reminder bubble `X` reaches React and dismisses the reminder.
 - `SET` / `X` are no longer always visible; they fade in on character hover.
 - Packaging command succeeded and produced updated files under `release/`.
+
+Latest implementation update:
+
+- `docs/continuous-usage-reminder.md` captures the continuous screen-usage reminder requirement.
+- The old renderer-only countdown has been replaced as the reminder driver by main-process activity tracking.
+- The main process polls `powerMonitor.getSystemIdleTime()` every 15 seconds.
+- Reminder settings are stored in the app user data folder as `settings.json`.
+- Reminder disabling only disables reminder bubbles and animation; it does not hide or quit the companion.
 
 Latest packaging outputs:
 
@@ -182,8 +191,7 @@ D:\PERSONAL\companion genie
 ## Next Priorities
 
 1. Clean up settings panel placement so it feels attached to the companion, not floating far away.
-2. Make interval input behavior obvious and reliable.
-3. Reposition reminder bubble so it does not cover the face.
-4. Remove or reduce temporary debug logging if it is no longer needed.
-5. Persist window position, selected character, timer interval, and scale.
-6. Improve icon and visual polish.
+2. Reposition reminder bubble so it does not cover the face.
+3. Remove or reduce temporary debug logging if it is no longer needed.
+4. Persist window position, selected character, and scale.
+5. Improve icon and visual polish.

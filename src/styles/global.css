@@ -20,7 +20,8 @@ body,
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -44,9 +45,11 @@ button {
 .settings-panel {
   position: absolute;
   left: 16px;
-  bottom: 205px;
+  bottom: 154px;
   z-index: 5;
-  width: 224px;
+  width: 286px;
+  max-height: calc(100vh - 42px);
+  overflow: auto;
   padding: 12px;
   border: 1px solid rgba(42, 50, 66, 0.14);
   border-radius: 8px;
@@ -89,7 +92,9 @@ button {
 }
 
 .settings-panel select,
-.timer-controls input {
+.timer-controls input,
+.reminder-settings input[type="number"],
+.reminder-settings textarea {
   width: 100%;
   box-sizing: border-box;
   border: 1px solid rgba(42, 50, 66, 0.18);
@@ -97,6 +102,94 @@ button {
   padding: 6px 8px;
   color: #26313f;
   background: #ffffff;
+}
+
+.reminder-settings {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(42, 50, 66, 0.1);
+}
+
+.reminder-settings__toggle {
+  display: grid;
+  grid-template-columns: 1fr 34px;
+  align-items: center;
+  gap: 10px;
+  color: #26313f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reminder-settings__toggle input {
+  width: 18px;
+  height: 18px;
+  justify-self: end;
+}
+
+.reminder-settings__inline {
+  display: grid;
+  grid-template-columns: auto 58px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.reminder-settings textarea {
+  resize: vertical;
+  min-height: 62px;
+  line-height: 1.35;
+}
+
+.reminder-settings__quick-fill {
+  display: grid;
+  gap: 6px;
+  color: #526070;
+  font-size: 12px;
+}
+
+.reminder-settings__quick-fill div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reminder-settings__quick-fill button,
+.reminder-settings__actions button,
+.reminder-settings__test {
+  min-height: 28px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.reminder-settings__quick-fill button {
+  padding: 0 9px;
+  color: #26313f;
+  background: rgba(42, 50, 66, 0.08);
+}
+
+.reminder-settings__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.reminder-settings__actions button:first-child {
+  color: #ffffff;
+  background: #31475f;
+}
+
+.reminder-settings__actions button:last-child,
+.reminder-settings__test {
+  color: #26313f;
+  background: rgba(42, 50, 66, 0.1);
+}
+
+.reminder-settings__error {
+  margin: 0;
+  color: #9f2d2d;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .timer-controls {

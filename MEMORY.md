@@ -82,7 +82,8 @@ Current app behavior after latest fixes:
 - Character can be dragged with custom pointer-based dragging.
 - `SET` and app `X` are hidden by default and appear when hovering over the character.
 - Settings can switch character and adjust timer/scale.
-- Timer can trigger a reminder bubble.
+- Continuous screen-usage tracking can trigger a reminder bubble.
+- Reminder settings can be edited and saved locally.
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
 
@@ -203,7 +204,42 @@ Future rule:
 ## Next Product Priorities
 
 1. Make the settings panel feel spatially connected to the companion.
-2. Fix interval input semantics so empty/manual typing is predictable.
-3. Move reminder bubble so it does not cover the face.
-4. Decide whether temporary renderer console logs should stay.
-5. Persist selected character, scale, interval, and window position.
+2. Move reminder bubble so it does not cover the face.
+3. Decide whether temporary renderer console logs should stay.
+4. Persist selected character, scale, and window position.
+
+## Continuous Reminder Implementation
+
+New requirement doc:
+
+```txt
+docs/continuous-usage-reminder.md
+```
+
+Reminder settings model:
+
+```ts
+reminderEnabled: boolean
+reminderTriggerMinutes: number
+idleBreakThresholdMinutes: number
+reminderMessage: string
+```
+
+Defaults:
+
+```txt
+reminderEnabled = true
+reminderTriggerMinutes = 50
+idleBreakThresholdMinutes = 3
+reminderMessage = "休息一下，站起来走两步。"
+```
+
+The main process owns continuous active usage detection with Electron `powerMonitor`.
+It polls system idle time every 15 seconds. If idle time reaches the configured break threshold, active usage resets. If active usage reaches the configured trigger interval, the renderer shows the existing speech bubble with the configured message.
+
+Reminder settings persist in Electron user data as `settings.json`.
+
+Important UX rule:
+
+- Disabling reminders only disables reminder messages and reminder animation.
+- It must not hide the companion, close the app, or quit the app.

@@ -1,38 +1,30 @@
 import type { Character } from '../data/characters';
-import type { TimerStatus } from '../hooks/useTimer';
-import TimerControls from './TimerControls';
+import type { ReminderSettings } from '../shared/reminderSettings';
+import ReminderSettingsControls from './ReminderSettingsControls';
 
 type SettingsPanelProps = {
   characters: Character[];
   selectedCharacterId: string;
-  intervalMinutes: number;
-  remainingSeconds: number;
-  status: TimerStatus;
   petScale: number;
+  reminderSettings: ReminderSettings;
   onCharacterChange: (characterId: string) => void;
-  onIntervalChange: (minutes: number) => void;
   onPetScaleChange: (scale: number) => void;
+  onSaveReminderSettings: (settings: ReminderSettings) => void;
+  onRestoreReminderDefaults: () => void;
   onCloseSettings: () => void;
-  onStart: () => void;
-  onPause: () => void;
-  onReset: () => void;
-  onTestReminder: () => void;
+  onTestReminder?: () => void;
 };
 
 const SettingsPanel = ({
   characters,
   selectedCharacterId,
-  intervalMinutes,
-  remainingSeconds,
-  status,
   petScale,
+  reminderSettings,
   onCharacterChange,
-  onIntervalChange,
   onPetScaleChange,
+  onSaveReminderSettings,
+  onRestoreReminderDefaults,
   onCloseSettings,
-  onStart,
-  onPause,
-  onReset,
   onTestReminder,
 }: SettingsPanelProps) => {
   return (
@@ -57,14 +49,10 @@ const SettingsPanel = ({
           ))}
         </select>
       </label>
-      <TimerControls
-        intervalMinutes={intervalMinutes}
-        remainingSeconds={remainingSeconds}
-        status={status}
-        onIntervalChange={onIntervalChange}
-        onStart={onStart}
-        onPause={onPause}
-        onReset={onReset}
+      <ReminderSettingsControls
+        settings={reminderSettings}
+        onSave={onSaveReminderSettings}
+        onRestoreDefaults={onRestoreReminderDefaults}
         onTestReminder={onTestReminder}
       />
       <div className="scale-controls">

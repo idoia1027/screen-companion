@@ -1,20 +1,16 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Pet from './components/Pet';
 import SettingsPanel from './components/SettingsPanel';
 import { characters } from './data/characters';
-import { useTimer } from './hooks/useTimer';
+import { DEFAULT_REMINDER_SETTINGS, type ReminderSettings } from './shared/reminderSettings';
 
-const DEFAULT_INTERVAL_MINUTES = 50;
-
-const pickReminderLine = (lines: string[] | undefined) => {
-  return lines?.[0] ?? '\u4f11\u606f\u4e00\u4e0b\uff0c\u7ad9\u8d77\u6765\u8d70\u4e24\u6b65\u3002';
-};
+const isDevelopment = import.meta.env.DEV;
 
 const App = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0].id);
-  const [intervalMinutes, setIntervalMinutes] = useState(DEFAULT_INTERVAL_MINUTES);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [petScale, setPetScale] = useState(1);
+  const [reminderSettings, setReminderSettings] = useState<ReminderSettings>(DEFAULT_REMINDER_SETTINGS);
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
 
@@ -23,39 +19,49 @@ const App = () => {
     [selectedCharacterId],
   );
 
-  const showReminder = useCallback(() => {
+  const showReminder = useCallback((message: string) => {
     console.log('state:show-reminder');
-    setReminderMessage(pickReminderLine(selectedCharacter.reminderLines));
+    setReminderMessage(message);
     setAnimationKey((current) => current + 1);
-  }, [selectedCharacter.reminderLines]);
+  }, []);
 
-  const timer = useTimer({
-    defaultDurationSeconds: DEFAULT_INTERVAL_MINUTES * 60,
-    onComplete: showReminder,
-  });
+  useEffect(() => {
+    let isMounted = true;
 
-  const handleIntervalChange = (minutes: number) => {
-    if (!Number.isFinite(minutes)) {
-      return;
+    window.companionApi.getReminderSettings().then((settings) => {
+      if (isMounted) {
+        setReminderSettings(settings);
+      }
+    });
+
+    const unsubscribe = window.companionApi.onUsageReminder(({ message }) => {
+      showReminder(message);
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [showReminder]);
+
+  const saveReminderSettings = useCallback(async (settings: ReminderSettings) => {
+    const savedSettings = await window.companionApi.saveReminderSettings(settings);
+    setReminderSettings(savedSettings);
+
+    if (!savedSettings.reminderEnabled) {
+      setReminderMessage(null);
     }
+  }, []);
 
-    const nextMinutes = Math.max(1, Math.round(minutes));
-    setIntervalMinutes(nextMinutes);
-    setReminderMessage(null);
-    timer.setDurationMinutes(nextMinutes);
-  };
+  const restoreReminderDefaults = useCallback(() => {
+    void saveReminderSettings(DEFAULT_REMINDER_SETTINGS);
+  }, [saveReminderSettings]);
 
   const handleTestReminder = () => {
     console.log('action:test-reminder');
-    setIntervalMinutes(1);
-    setReminderMessage(null);
-    timer.reset(10);
-    timer.start();
-  };
-
-  const handleReset = () => {
-    setReminderMessage(null);
-    timer.reset(Math.round(intervalMinutes * 60));
+    if (reminderSettings.reminderEnabled) {
+      showReminder(reminderSettings.reminderMessage);
+    }
   };
 
   return (
@@ -64,18 +70,16 @@ const App = () => {
         <SettingsPanel
           characters={characters}
           selectedCharacterId={selectedCharacterId}
-          intervalMinutes={intervalMinutes}
-          remainingSeconds={timer.remainingSeconds}
-          status={timer.status}
           petScale={petScale}
+          reminderSettings={reminderSettings}
           onCharacterChange={setSelectedCharacterId}
-          onIntervalChange={handleIntervalChange}
           onPetScaleChange={setPetScale}
+          onSaveReminderSettings={(settings) => {
+            void saveReminderSettings(settings);
+          }}
+          onRestoreReminderDefaults={restoreReminderDefaults}
           onCloseSettings={() => setSettingsOpen(false)}
-          onStart={timer.start}
-          onPause={timer.pause}
-          onReset={handleReset}
-          onTestReminder={handleTestReminder}
+          onTestReminder={isDevelopment ? handleTestReminder : undefined}
         />
       ) : null}
       <Pet
