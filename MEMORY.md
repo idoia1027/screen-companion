@@ -45,6 +45,7 @@ src/components/ReminderSettingsControls.tsx
 src/components/TimerControls.tsx
 src/components/SpeechBubble.tsx
 src/hooks/useDraggable.ts
+src/shared/appSettings.ts
 src/shared/reminderSettings.ts
 src/data/characters.ts
 src/styles/global.css
@@ -89,6 +90,9 @@ Current app behavior after latest fixes:
 - Reminder settings can be edited and saved locally.
 - Reminder message supports free text, including Chinese text.
 - Quick-fill buttons only fill the reminder message input.
+- Users can import their own PNG/WebP/GIF/JPG character images.
+- Imported custom characters are copied into Electron user data and loaded via `screen-companion-character://`.
+- Selected character and custom character list persist locally.
 - The development build may show `Test reminder`; final packaged user builds should not expose test mode.
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
@@ -211,7 +215,7 @@ Future rule:
 
 1. Make the settings panel feel spatially connected to the companion.
 2. Move reminder bubble so it does not cover the face.
-3. Persist selected character, scale, and window position.
+3. Persist scale and window position.
 4. Decide whether temporary renderer console logs should stay.
 5. Package a fresh Windows build from the current verified dev state.
 
@@ -287,3 +291,26 @@ If normal GitHub connectivity improves later, prefer a normal `git push` flow ag
 The user reported that yesterday's feature behavior looks normal in the local app.
 
 Treat the continuous screen-usage reminder as implemented and user-accepted for the dev build, pending a fresh packaged Windows build and real packaged-app verification.
+
+## Custom Character Import
+
+New behavior:
+
+- Settings includes an `Import image` action under Character.
+- Supported import formats are PNG, WebP, GIF, JPG, and JPEG.
+- The imported source file is copied into:
+
+```txt
+Electron userData/custom-characters/
+```
+
+- The renderer receives imported image URLs through the internal protocol:
+
+```txt
+screen-companion-character://<custom-character-id>
+```
+
+- Do not use raw `file://` paths for custom character images; they may be blocked when the renderer is loaded from the Vite dev server.
+- Custom characters can be removed from Settings.
+- Removing the selected custom character falls back to `cutout-1`.
+- This feature intentionally does not do background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its original rectangular background.

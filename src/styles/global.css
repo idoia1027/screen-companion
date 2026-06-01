@@ -104,6 +104,33 @@ button {
   background: #ffffff;
 }
 
+.character-import {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.character-import button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 6px;
+  color: #26313f;
+  font-size: 12px;
+  background: rgba(42, 50, 66, 0.1);
+}
+
+.character-import button:first-child {
+  color: #ffffff;
+  background: #31475f;
+}
+
+.character-import span {
+  grid-column: 1 / -1;
+  color: #6b7582;
+  font-size: 11px;
+}
+
 .reminder-settings {
   display: grid;
   gap: 10px;

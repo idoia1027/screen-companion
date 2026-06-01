@@ -7,6 +7,8 @@ export type Character = {
   image: string;
   defaultScale?: number;
   reminderLines?: string[];
+  isCustom?: boolean;
+  imagePath?: string;
 };
 
 export const characters: Character[] = [

@@ -1,22 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Pet from './components/Pet';
 import SettingsPanel from './components/SettingsPanel';
-import { characters } from './data/characters';
+import { characters, type Character } from './data/characters';
+import type { CustomCharacter } from './shared/appSettings';
 import { DEFAULT_REMINDER_SETTINGS, type ReminderSettings } from './shared/reminderSettings';
 
 const isDevelopment = import.meta.env.DEV;
 
 const App = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0].id);
+  const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [petScale, setPetScale] = useState(1);
   const [reminderSettings, setReminderSettings] = useState<ReminderSettings>(DEFAULT_REMINDER_SETTINGS);
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
 
+  const allCharacters = useMemo<Character[]>(() => [...characters, ...customCharacters], [customCharacters]);
+
   const selectedCharacter = useMemo(
-    () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
-    [selectedCharacterId],
+    () => allCharacters.find((character) => character.id === selectedCharacterId) ?? allCharacters[0] ?? characters[0],
+    [allCharacters, selectedCharacterId],
   );
 
   const showReminder = useCallback((message: string) => {
@@ -31,6 +35,13 @@ const App = () => {
     window.companionApi.getReminderSettings().then((settings) => {
       if (isMounted) {
         setReminderSettings(settings);
+      }
+    });
+
+    window.companionApi.getAppSettings().then((settings) => {
+      if (isMounted) {
+        setCustomCharacters(settings.customCharacters);
+        setSelectedCharacterId(settings.selectedCharacterId);
       }
     });
 
@@ -57,6 +68,28 @@ const App = () => {
     void saveReminderSettings(DEFAULT_REMINDER_SETTINGS);
   }, [saveReminderSettings]);
 
+  const handleCharacterChange = useCallback((characterId: string) => {
+    setSelectedCharacterId(characterId);
+    void window.companionApi.selectCharacter(characterId);
+  }, []);
+
+  const handleImportCharacter = useCallback(async () => {
+    const importedCharacter = await window.companionApi.importCustomCharacter();
+
+    if (!importedCharacter) {
+      return;
+    }
+
+    setCustomCharacters((current) => [...current, importedCharacter]);
+    setSelectedCharacterId(importedCharacter.id);
+  }, []);
+
+  const handleRemoveCustomCharacter = useCallback(async (characterId: string) => {
+    const settings = await window.companionApi.removeCustomCharacter(characterId);
+    setCustomCharacters(settings.customCharacters);
+    setSelectedCharacterId(settings.selectedCharacterId);
+  }, []);
+
   const handleTestReminder = () => {
     console.log('action:test-reminder');
     if (reminderSettings.reminderEnabled) {
@@ -68,11 +101,17 @@ const App = () => {
     <main className="app-shell">
       {settingsOpen ? (
         <SettingsPanel
-          characters={characters}
+          characters={allCharacters}
           selectedCharacterId={selectedCharacterId}
           petScale={petScale}
           reminderSettings={reminderSettings}
-          onCharacterChange={setSelectedCharacterId}
+          onCharacterChange={handleCharacterChange}
+          onImportCharacter={() => {
+            void handleImportCharacter();
+          }}
+          onRemoveCustomCharacter={(characterId) => {
+            void handleRemoveCustomCharacter(characterId);
+          }}
           onPetScaleChange={setPetScale}
           onSaveReminderSettings={(settings) => {
             void saveReminderSettings(settings);

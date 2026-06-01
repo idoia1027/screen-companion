@@ -8,6 +8,8 @@ type SettingsPanelProps = {
   petScale: number;
   reminderSettings: ReminderSettings;
   onCharacterChange: (characterId: string) => void;
+  onImportCharacter: () => void;
+  onRemoveCustomCharacter: (characterId: string) => void;
   onPetScaleChange: (scale: number) => void;
   onSaveReminderSettings: (settings: ReminderSettings) => void;
   onRestoreReminderDefaults: () => void;
@@ -21,12 +23,16 @@ const SettingsPanel = ({
   petScale,
   reminderSettings,
   onCharacterChange,
+  onImportCharacter,
+  onRemoveCustomCharacter,
   onPetScaleChange,
   onSaveReminderSettings,
   onRestoreReminderDefaults,
   onCloseSettings,
   onTestReminder,
 }: SettingsPanelProps) => {
+  const selectedCharacter = characters.find((character) => character.id === selectedCharacterId) ?? characters[0];
+
   return (
     <aside
       className="settings-panel"
@@ -49,6 +55,17 @@ const SettingsPanel = ({
           ))}
         </select>
       </label>
+      <div className="character-import">
+        <button type="button" onClick={onImportCharacter}>
+          Import image
+        </button>
+        {selectedCharacter?.isCustom ? (
+          <button type="button" onClick={() => onRemoveCustomCharacter(selectedCharacter.id)}>
+            Remove custom
+          </button>
+        ) : null}
+        <span>PNG / WebP / GIF / JPG</span>
+      </div>
       <ReminderSettingsControls
         settings={reminderSettings}
         onSave={onSaveReminderSettings}

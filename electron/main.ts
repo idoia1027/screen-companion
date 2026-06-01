@@ -1,7 +1,9 @@
-import { app, BrowserWindow, ipcMain, powerMonitor, screen } from 'electron';
-import { dirname, join } from 'node:path';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { app, BrowserWindow, dialog, ipcMain, net, powerMonitor, protocol, screen } from 'electron';
+import { basename, dirname, extname, join } from 'node:path';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
+import type { AppSettings, CustomCharacter, StoredCustomCharacter, StoredSettings } from '../src/shared/appSettings';
 import {
   DEFAULT_REMINDER_SETTINGS,
   type ReminderSettings,
@@ -12,9 +14,22 @@ let mainWindow: BrowserWindow | null = null;
 const logPath = join(tmpdir(), 'screen-companion-main.log');
 const usagePollIntervalMs = 15_000;
 let reminderSettings: ReminderSettings = DEFAULT_REMINDER_SETTINGS;
+let selectedCharacterId = 'cutout-1';
+let customCharacters: StoredCustomCharacter[] = [];
 let activeUsageSeconds = 0;
 let reminderAlreadyShown = false;
 let usagePollIntervalId: ReturnType<typeof setInterval> | null = null;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'screen-companion-character',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+    },
+  },
+]);
 
 const logMain = (message: string) => {
   appendFileSync(logPath, `[${new Date().toISOString()}] ${message}\n`);
@@ -29,21 +44,89 @@ process.on('unhandledRejection', (reason) => {
 });
 
 const getSettingsPath = () => join(app.getPath('userData'), 'settings.json');
+const getCustomCharactersDir = () => join(app.getPath('userData'), 'custom-characters');
 
-const loadReminderSettings = () => {
+const readStoredSettings = (): StoredSettings => {
   const settingsPath = getSettingsPath();
 
   if (!existsSync(settingsPath)) {
-    reminderSettings = DEFAULT_REMINDER_SETTINGS;
-    return reminderSettings;
+    return {};
   }
 
   try {
-    const parsed = JSON.parse(readFileSync(settingsPath, 'utf8')) as Partial<ReminderSettings>;
-    reminderSettings = sanitizeReminderSettings(parsed);
+    const parsed = JSON.parse(readFileSync(settingsPath, 'utf8')) as StoredSettings & Partial<ReminderSettings>;
+
+    if ('reminderEnabled' in parsed) {
+      return {
+        reminderSettings: parsed,
+      };
+    }
+
+    return parsed;
   } catch (error) {
     logMain(`settings:load-failed:${String(error)}`);
-    reminderSettings = DEFAULT_REMINDER_SETTINGS;
+    return {};
+  }
+};
+
+const writeStoredSettings = () => {
+  const settingsPath = getSettingsPath();
+  mkdirSync(dirname(settingsPath), { recursive: true });
+  writeFileSync(
+    settingsPath,
+    JSON.stringify(
+      {
+        selectedCharacterId,
+        customCharacters,
+        reminderSettings,
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
+};
+
+const toCustomCharacter = (character: StoredCustomCharacter): CustomCharacter => ({
+  ...character,
+  image: `screen-companion-character://${encodeURIComponent(character.id)}`,
+  isCustom: true,
+});
+
+const registerCustomCharacterProtocol = () => {
+  protocol.handle('screen-companion-character', (request) => {
+    const characterId = decodeURIComponent(new URL(request.url).hostname);
+    const character = customCharacters.find((item) => item.id === characterId);
+
+    if (!character || !existsSync(character.imagePath)) {
+      return new Response(null, { status: 404 });
+    }
+
+    return net.fetch(pathToFileURL(character.imagePath).toString());
+  });
+};
+
+const getAppSettings = (): AppSettings => ({
+  selectedCharacterId,
+  customCharacters: customCharacters.filter((character) => existsSync(character.imagePath)).map(toCustomCharacter),
+});
+
+const loadReminderSettings = () => {
+  const storedSettings = readStoredSettings();
+  reminderSettings = sanitizeReminderSettings(storedSettings.reminderSettings as Partial<ReminderSettings>);
+  selectedCharacterId = typeof storedSettings.selectedCharacterId === 'string' ? storedSettings.selectedCharacterId : 'cutout-1';
+  customCharacters = Array.isArray(storedSettings.customCharacters)
+    ? storedSettings.customCharacters.filter(
+        (character) =>
+          typeof character.id === 'string' &&
+          typeof character.name === 'string' &&
+          typeof character.imagePath === 'string' &&
+          existsSync(character.imagePath),
+      )
+    : [];
+
+  if (selectedCharacterId.startsWith('custom-') && !customCharacters.some((character) => character.id === selectedCharacterId)) {
+    selectedCharacterId = 'cutout-1';
   }
 
   return reminderSettings;
@@ -51,11 +134,84 @@ const loadReminderSettings = () => {
 
 const saveReminderSettings = (settings: ReminderSettings) => {
   reminderSettings = sanitizeReminderSettings(settings);
-  const settingsPath = getSettingsPath();
-  mkdirSync(dirname(settingsPath), { recursive: true });
-  writeFileSync(settingsPath, JSON.stringify(reminderSettings, null, 2), 'utf8');
+  writeStoredSettings();
   resetUsageTracking();
   return reminderSettings;
+};
+
+const saveSelectedCharacter = (characterId: string) => {
+  if (typeof characterId !== 'string' || characterId.length === 0) {
+    return selectedCharacterId;
+  }
+
+  selectedCharacterId = characterId;
+  writeStoredSettings();
+  return selectedCharacterId;
+};
+
+const importCustomCharacter = async () => {
+  if (!mainWindow) {
+    return null;
+  }
+
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Import transparent character image',
+    properties: ['openFile'],
+    filters: [
+      {
+        name: 'Character image assets',
+        extensions: ['png', 'webp', 'gif', 'jpg', 'jpeg'],
+      },
+    ],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const sourcePath = result.filePaths[0];
+  const extension = extname(sourcePath).toLowerCase();
+  const allowedExtensions = new Set(['.png', '.webp', '.gif', '.jpg', '.jpeg']);
+
+  if (!allowedExtensions.has(extension)) {
+    return null;
+  }
+
+  mkdirSync(getCustomCharactersDir(), { recursive: true });
+
+  const id = `custom-${Date.now()}`;
+  const imagePath = join(getCustomCharactersDir(), `${id}${extension}`);
+  copyFileSync(sourcePath, imagePath);
+
+  const character: StoredCustomCharacter = {
+    id,
+    name: basename(sourcePath, extension),
+    imagePath,
+    defaultScale: 1,
+  };
+
+  customCharacters = [...customCharacters, character];
+  selectedCharacterId = id;
+  writeStoredSettings();
+  return toCustomCharacter(character);
+};
+
+const removeCustomCharacter = (characterId: string) => {
+  const character = customCharacters.find((item) => item.id === characterId);
+
+  if (!character) {
+    return getAppSettings();
+  }
+
+  customCharacters = customCharacters.filter((item) => item.id !== characterId);
+  rmSync(character.imagePath, { force: true });
+
+  if (selectedCharacterId === characterId) {
+    selectedCharacterId = 'cutout-1';
+  }
+
+  writeStoredSettings();
+  return getAppSettings();
 };
 
 function resetUsageTracking() {
@@ -193,6 +349,7 @@ if (!gotSingleInstanceLock) {
 app.whenReady().then(() => {
   logMain('app:ready');
   loadReminderSettings();
+  registerCustomCharacterProtocol();
   startUsageTracking();
   powerMonitor.on('suspend', resetUsageTracking);
   powerMonitor.on('lock-screen', resetUsageTracking);
@@ -232,4 +389,20 @@ ipcMain.handle('reminder-settings:get', () => {
 
 ipcMain.handle('reminder-settings:save', (_event, settings: ReminderSettings) => {
   return saveReminderSettings(settings);
+});
+
+ipcMain.handle('app-settings:get', () => {
+  return getAppSettings();
+});
+
+ipcMain.handle('character:select', (_event, characterId: string) => {
+  return saveSelectedCharacter(characterId);
+});
+
+ipcMain.handle('character:import', () => {
+  return importCustomCharacter();
+});
+
+ipcMain.handle('character:remove-custom', (_event, characterId: string) => {
+  return removeCustomCharacter(characterId);
 });

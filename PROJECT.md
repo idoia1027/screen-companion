@@ -50,6 +50,8 @@ Implemented and currently considered working:
 - Continuous screen-usage reminder settings
 - Electron `powerMonitor` based active usage detection
 - Local persistence for reminder enablement, trigger interval, idle break threshold, and message
+- User-imported custom transparent companion images
+- Local persistence for custom character list and selected character
 - Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
@@ -99,6 +101,15 @@ Latest user-verified behavior after the continuous reminder work:
 - Custom reminder text is supported and remains part of the reminder bubble flow.
 - Disabling reminders is treated as a reminder-only toggle, not a companion visibility toggle.
 - The feature has been synced to the private GitHub repository `idoia1027/screen-companion` through the GitHub API fallback because local `git push` over HTTPS was unreliable.
+
+Latest custom character implementation update:
+
+- Settings now supports importing user-provided PNG, WebP, GIF, JPG, or JPEG assets.
+- Imported character files are copied to Electron user data under `custom-characters/`.
+- Custom character images are loaded through an internal `screen-companion-character://` protocol instead of direct `file://` paths.
+- The selected character and custom character list persist in `settings.json`.
+- Imported custom characters can be removed; if the selected custom character is removed, the app falls back to `cutout-1`.
+- This does not perform background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its rectangular background.
 
 Latest packaging outputs:
 
@@ -201,7 +212,7 @@ D:\PERSONAL\companion genie
 
 1. Clean up settings panel placement so it feels attached to the companion, not floating far away.
 2. Reposition reminder bubble so it does not cover the face.
-3. Persist window position, selected character, and scale.
+3. Persist window position and scale.
 4. Remove or reduce temporary debug logging if it is no longer needed.
 5. Improve icon and visual polish.
 6. Package a fresh Windows build after the current verified dev behavior is accepted.

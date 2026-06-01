@@ -12,7 +12,25 @@ The MVP is intentionally not a chatbot, productivity dashboard, browser extensio
 - Tracks continuous active screen usage locally with Electron `powerMonitor`.
 - Shows a small reminder speech bubble after the configured active usage interval.
 - Lets the user configure reminder enablement, interval, idle break threshold, and message text.
+- Lets the user import their own transparent PNG, WebP, or GIF companion image.
 - Provides minimal controls for settings, companion size, and closing the app.
+
+## Custom Companion Images
+
+Users can import an image from Settings with `Import image`.
+
+Supported formats:
+
+```txt
+PNG
+WebP
+GIF
+JPG / JPEG
+```
+
+Imported images are copied into the app's local user data folder under `custom-characters/`, then loaded through an internal Electron protocol. This means the companion can keep using the imported image even if the original file is moved or deleted.
+
+This feature does not remove backgrounds. PNG, WebP, and GIF can preserve transparency; JPG/JPEG does not have a transparent channel and will appear with its original rectangular background.
 
 ## Continuous Screen Usage Reminder
 
@@ -126,6 +144,9 @@ build/icon.ico
 - Disable continuous screen reminders, save, and confirm the companion remains visible.
 - Re-enable reminders, set a practical short interval for manual testing, keep the system active, and confirm the reminder bubble uses the custom message.
 - Stay idle longer than the idle break threshold and confirm active usage resets safely.
+- Import a PNG/WebP/GIF/JPG from Settings and confirm the companion switches to it.
+- Restart the app and confirm the imported custom companion remains available.
+- Remove the custom companion and confirm the app falls back to a built-in character.
 - Dismiss the reminder bubble.
 - Run `npm.cmd run package:win`.
 - Close any existing `Screen Companion` processes before running the installer.
@@ -147,6 +168,7 @@ Assets should be pre-cut transparent PNG, WebP, or simple GIF files. Do not use 
 - No automatic image background removal.
 - No AI chat or LLM integration.
 - No backend, login, sync, or marketplace.
+- No automatic background removal for imported images.
 - Active usage detection is based on OS idle time, not eye-gaze detection.
 - Window position and selected character are not persisted yet.
 - The app icon is a simple placeholder.

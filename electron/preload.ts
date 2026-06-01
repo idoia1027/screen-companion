@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { AppSettings, CustomCharacter } from '../src/shared/appSettings';
 import type { ReminderSettings } from '../src/shared/reminderSettings';
 
 type UsageReminderPayload = {
@@ -18,6 +19,18 @@ const companionApi = {
   },
   saveReminderSettings(settings: ReminderSettings) {
     return ipcRenderer.invoke('reminder-settings:save', settings) as Promise<ReminderSettings>;
+  },
+  getAppSettings() {
+    return ipcRenderer.invoke('app-settings:get') as Promise<AppSettings>;
+  },
+  selectCharacter(characterId: string) {
+    return ipcRenderer.invoke('character:select', characterId) as Promise<string>;
+  },
+  importCustomCharacter() {
+    return ipcRenderer.invoke('character:import') as Promise<CustomCharacter | null>;
+  },
+  removeCustomCharacter(characterId: string) {
+    return ipcRenderer.invoke('character:remove-custom', characterId) as Promise<AppSettings>;
   },
   onUsageReminder(callback: (payload: UsageReminderPayload) => void) {
     const listener = (_event: Electron.IpcRendererEvent, payload: UsageReminderPayload) => {
