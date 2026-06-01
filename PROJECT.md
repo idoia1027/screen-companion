@@ -26,7 +26,7 @@ Do not add these to MVP:
 - Live2D or 3D character system
 - browser extension
 - productivity dashboard
-- raw rectangular JPG companion display
+- automatic conversion of opaque JPGs into transparent companion cutouts
 
 ## Current Stack
 
@@ -50,7 +50,7 @@ Implemented and currently considered working:
 - Continuous screen-usage reminder settings
 - Electron `powerMonitor` based active usage detection
 - Local persistence for reminder enablement, trigger interval, idle break threshold, and message
-- User-imported custom transparent companion images
+- User-imported custom companion images, with transparent PNG/WebP/GIF recommended and JPG/JPEG allowed without background removal
 - Local persistence for custom character list and selected character
 - Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
@@ -110,6 +110,16 @@ Latest custom character implementation update:
 - The selected character and custom character list persist in `settings.json`.
 - Imported custom characters can be removed; if the selected custom character is removed, the app falls back to `cutout-1`.
 - This does not perform background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its rectangular background.
+- `npm.cmd run build` passed after the custom character import and JPG/JPEG support changes.
+- Local commit `1f9350b Add custom character import` was synced to the private GitHub repository through the GitHub API fallback.
+- Remote `main` was verified at API tree commit `245ed5a79454251292f974a65e19023640f7a5d3`.
+
+Manual verification still recommended:
+
+- Import one transparent PNG/WebP/GIF and confirm it appears as a cutout.
+- Import one JPG/JPEG and confirm it appears with its original rectangular background.
+- Restart the app and confirm the selected custom character persists.
+- Remove the selected custom character and confirm the app falls back to `cutout-1`.
 
 Latest packaging outputs:
 
@@ -210,9 +220,10 @@ D:\PERSONAL\companion genie
 
 ## Next Priorities
 
-1. Clean up settings panel placement so it feels attached to the companion, not floating far away.
-2. Reposition reminder bubble so it does not cover the face.
-3. Persist window position and scale.
-4. Remove or reduce temporary debug logging if it is no longer needed.
-5. Improve icon and visual polish.
-6. Package a fresh Windows build after the current verified dev behavior is accepted.
+1. Manually verify custom character import in the desktop app with PNG/WebP/GIF and JPG/JPEG samples.
+2. Package a fresh Windows build after custom import is accepted.
+3. Clean up settings panel placement so it feels attached to the companion, not floating far away.
+4. Reposition reminder bubble so it does not cover the face.
+5. Persist window position and scale.
+6. Remove or reduce temporary debug logging if it is no longer needed.
+7. Improve icon and visual polish.

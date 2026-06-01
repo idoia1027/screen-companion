@@ -19,7 +19,7 @@ Keep these constraints active:
 - no backend
 - no login
 - no Live2D
-- no raw rectangular JPG companion
+- no automatic conversion of opaque JPGs into transparent companion cutouts
 - no large dashboard UI
 - settings remain secondary
 
@@ -93,6 +93,7 @@ Current app behavior after latest fixes:
 - Users can import their own PNG/WebP/GIF/JPG character images.
 - Imported custom characters are copied into Electron user data and loaded via `screen-companion-character://`.
 - Selected character and custom character list persist locally.
+- JPG/JPEG import is supported, but the image keeps its original rectangular background because there is no background removal.
 - The development build may show `Test reminder`; final packaged user builds should not expose test mode.
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
@@ -213,11 +214,12 @@ Future rule:
 
 ## Next Product Priorities
 
-1. Make the settings panel feel spatially connected to the companion.
-2. Move reminder bubble so it does not cover the face.
-3. Persist scale and window position.
-4. Decide whether temporary renderer console logs should stay.
-5. Package a fresh Windows build from the current verified dev state.
+1. Manually verify custom image import in the desktop app with transparent PNG/WebP/GIF and opaque JPG/JPEG samples.
+2. Package a fresh Windows build from the current accepted dev state.
+3. Make the settings panel feel spatially connected to the companion.
+4. Move reminder bubble so it does not cover the face.
+5. Persist scale and window position.
+6. Decide whether temporary renderer console logs should stay.
 
 ## Continuous Reminder Implementation
 
@@ -272,25 +274,35 @@ main
 Latest local feature commit:
 
 ```txt
-ec45b4d Add continuous usage reminder settings
+1f9350b Add custom character import
 ```
 
-Because local `git push` over HTTPS was unreliable, the latest continuous reminder file tree was synced to GitHub `main` through the GitHub API fallback.
+Because local `git push` over HTTPS was unreliable, the latest feature file tree was synced to GitHub `main` through the GitHub API fallback.
 
 Remote `main` was verified to include:
 
 ```txt
 docs/continuous-usage-reminder.md
 README.md continuous reminder documentation
+README.md custom character import documentation with JPG/JPEG support
+src/shared/appSettings.ts
+```
+
+Latest verified remote API tree commit:
+
+```txt
+245ed5a79454251292f974a65e19023640f7a5d3
 ```
 
 If normal GitHub connectivity improves later, prefer a normal `git push` flow again.
 
 ## Latest User Verification
 
-The user reported that yesterday's feature behavior looks normal in the local app.
+The user reported that yesterday's continuous reminder behavior looks normal in the local app.
 
 Treat the continuous screen-usage reminder as implemented and user-accepted for the dev build, pending a fresh packaged Windows build and real packaged-app verification.
+
+Treat custom character import as implemented, build-validated, and synced to GitHub. It still needs real desktop manual verification with at least one transparent image and one JPG/JPEG before calling the user-facing flow fully accepted.
 
 ## Custom Character Import
 
