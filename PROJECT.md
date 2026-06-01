@@ -91,6 +91,15 @@ Latest implementation update:
 - Reminder settings are stored in the app user data folder as `settings.json`.
 - Reminder disabling only disables reminder bubbles and animation; it does not hide or quit the companion.
 
+Latest user-verified behavior after the continuous reminder work:
+
+- The local dev app opens at `http://localhost:5173/` when `npm run dev` is running.
+- The continuous reminder settings UI appears and the user reported yesterday's feature behavior looks normal.
+- Reminder settings can be edited through the lightweight settings panel.
+- Custom reminder text is supported and remains part of the reminder bubble flow.
+- Disabling reminders is treated as a reminder-only toggle, not a companion visibility toggle.
+- The feature has been synced to the private GitHub repository `idoia1027/screen-companion` through the GitHub API fallback because local `git push` over HTTPS was unreliable.
+
 Latest packaging outputs:
 
 ```txt
@@ -192,6 +201,7 @@ D:\PERSONAL\companion genie
 
 1. Clean up settings panel placement so it feels attached to the companion, not floating far away.
 2. Reposition reminder bubble so it does not cover the face.
-3. Remove or reduce temporary debug logging if it is no longer needed.
-4. Persist window position, selected character, and scale.
+3. Persist window position, selected character, and scale.
+4. Remove or reduce temporary debug logging if it is no longer needed.
 5. Improve icon and visual polish.
+6. Package a fresh Windows build after the current verified dev behavior is accepted.

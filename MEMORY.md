@@ -41,11 +41,14 @@ electron/preload.ts
 src/App.tsx
 src/components/Pet.tsx
 src/components/SettingsPanel.tsx
+src/components/ReminderSettingsControls.tsx
 src/components/TimerControls.tsx
 src/components/SpeechBubble.tsx
 src/hooks/useDraggable.ts
+src/shared/reminderSettings.ts
 src/data/characters.ts
 src/styles/global.css
+docs/continuous-usage-reminder.md
 package.json
 README.md
 PROJECT.md
@@ -84,6 +87,9 @@ Current app behavior after latest fixes:
 - Settings can switch character and adjust timer/scale.
 - Continuous screen-usage tracking can trigger a reminder bubble.
 - Reminder settings can be edited and saved locally.
+- Reminder message supports free text, including Chinese text.
+- Quick-fill buttons only fill the reminder message input.
+- The development build may show `Test reminder`; final packaged user builds should not expose test mode.
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
 
@@ -205,8 +211,9 @@ Future rule:
 
 1. Make the settings panel feel spatially connected to the companion.
 2. Move reminder bubble so it does not cover the face.
-3. Decide whether temporary renderer console logs should stay.
-4. Persist selected character, scale, and window position.
+3. Persist selected character, scale, and window position.
+4. Decide whether temporary renderer console logs should stay.
+5. Package a fresh Windows build from the current verified dev state.
 
 ## Continuous Reminder Implementation
 
@@ -243,3 +250,40 @@ Important UX rule:
 
 - Disabling reminders only disables reminder messages and reminder animation.
 - It must not hide the companion, close the app, or quit the app.
+
+## GitHub Sync State
+
+Private repository:
+
+```txt
+https://github.com/idoia1027/screen-companion
+```
+
+Local branch:
+
+```txt
+main
+```
+
+Latest local feature commit:
+
+```txt
+ec45b4d Add continuous usage reminder settings
+```
+
+Because local `git push` over HTTPS was unreliable, the latest continuous reminder file tree was synced to GitHub `main` through the GitHub API fallback.
+
+Remote `main` was verified to include:
+
+```txt
+docs/continuous-usage-reminder.md
+README.md continuous reminder documentation
+```
+
+If normal GitHub connectivity improves later, prefer a normal `git push` flow again.
+
+## Latest User Verification
+
+The user reported that yesterday's feature behavior looks normal in the local app.
+
+Treat the continuous screen-usage reminder as implemented and user-accepted for the dev build, pending a fresh packaged Windows build and real packaged-app verification.
