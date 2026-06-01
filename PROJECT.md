@@ -112,7 +112,7 @@ Latest custom character implementation update:
 - This does not perform background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its rectangular background.
 - `npm.cmd run build` passed after the custom character import and JPG/JPEG support changes.
 - Local commit `1f9350b Add custom character import` was synced to the private GitHub repository through the GitHub API fallback.
-- Remote `main` was verified at API tree commit `245ed5a79454251292f974a65e19023640f7a5d3`.
+- Documentation progress is also tracked in Git and synced through the same GitHub API fallback when normal HTTPS push is unavailable.
 
 Manual verification still recommended:
 

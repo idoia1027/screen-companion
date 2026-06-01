@@ -288,11 +288,7 @@ README.md custom character import documentation with JPG/JPEG support
 src/shared/appSettings.ts
 ```
 
-Latest verified remote API tree commit:
-
-```txt
-245ed5a79454251292f974a65e19023640f7a5d3
-```
+Documentation progress is also tracked in Git and synced through the same GitHub API fallback when normal HTTPS push is unavailable. Avoid hard-coding the remote API commit SHA in this memory file because each documentation sync creates a new remote commit.
 
 If normal GitHub connectivity improves later, prefer a normal `git push` flow again.
 
