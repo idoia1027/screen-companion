@@ -12,7 +12,8 @@ The MVP is intentionally not a chatbot, productivity dashboard, browser extensio
 - Tracks continuous active screen usage locally with Electron `powerMonitor`.
 - Shows a small reminder speech bubble after the configured active usage interval.
 - Lets the user configure reminder enablement, interval, idle break threshold, and message text.
-- Lets the user import their own transparent PNG, WebP, or GIF companion image.
+- Lets the user import their own PNG, WebP, GIF, JPG, or JPEG companion image.
+- Randomly rotates through selected companion characters every hour by default.
 - Provides minimal controls for settings, companion size, and closing the app.
 
 ## Custom Companion Images
@@ -31,6 +32,21 @@ JPG / JPEG
 Imported images are copied into the app's local user data folder under `custom-characters/`, then loaded through an internal Electron protocol. This means the companion can keep using the imported image even if the original file is moved or deleted.
 
 This feature does not remove backgrounds. PNG, WebP, and GIF can preserve transparency; JPG/JPEG does not have a transparent channel and will appear with its original rectangular background.
+
+## Character Rotation
+
+Character rotation is enabled by default. The app randomly switches between selected companion characters every 60 minutes.
+
+Users can configure this in Settings:
+
+- Turn `Random rotation` on or off.
+- Change the rotation interval.
+- Select which built-in and imported custom characters participate in the rotation pool.
+- Turn rotation off to keep one fixed selected character.
+
+Newly imported custom characters are added to the rotation pool by default. Removing a custom character also removes it from the rotation pool.
+
+Character selection and rotation settings are saved locally in the app user data folder and restored after restart.
 
 ## Continuous Screen Usage Reminder
 
@@ -147,6 +163,9 @@ build/icon.ico
 - Import a PNG/WebP/GIF/JPG from Settings and confirm the companion switches to it.
 - Restart the app and confirm the imported custom companion remains available.
 - Remove the custom companion and confirm the app falls back to a built-in character.
+- Confirm `Random rotation` is enabled by default, with a 60 minute interval.
+- Confirm the rotation pool can include or exclude individual built-in/custom characters.
+- Turn `Random rotation` off, select one character, restart, and confirm the fixed selection persists.
 - Dismiss the reminder bubble.
 - Run `npm.cmd run package:win`.
 - Close any existing `Screen Companion` processes before running the installer.
@@ -161,7 +180,7 @@ MVP character assets live in:
 src/assets/characters/
 ```
 
-Assets should be pre-cut transparent PNG, WebP, or simple GIF files. Do not use raw rectangular JPG photos as the companion.
+Transparent PNG, WebP, or simple GIF files work best. JPG/JPEG files are supported but keep their rectangular background because the app does not remove backgrounds.
 
 ## Known Limitations
 
@@ -170,5 +189,5 @@ Assets should be pre-cut transparent PNG, WebP, or simple GIF files. Do not use 
 - No backend, login, sync, or marketplace.
 - No automatic background removal for imported images.
 - Active usage detection is based on OS idle time, not eye-gaze detection.
-- Window position and selected character are not persisted yet.
+- Window position is not persisted yet.
 - The app icon is a simple placeholder.

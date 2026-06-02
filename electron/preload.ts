@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AppSettings, CustomCharacter } from '../src/shared/appSettings';
+import type { AppSettings, CharacterRotationSettings, CustomCharacter } from '../src/shared/appSettings';
 import type { ReminderSettings } from '../src/shared/reminderSettings';
 
 type UsageReminderPayload = {
@@ -25,6 +25,9 @@ const companionApi = {
   },
   selectCharacter(characterId: string) {
     return ipcRenderer.invoke('character:select', characterId) as Promise<string>;
+  },
+  saveCharacterRotationSettings(settings: CharacterRotationSettings) {
+    return ipcRenderer.invoke('character-rotation:save', settings) as Promise<CharacterRotationSettings>;
   },
   importCustomCharacter() {
     return ipcRenderer.invoke('character:import') as Promise<CustomCharacter | null>;

@@ -45,10 +45,11 @@ button {
 .settings-panel {
   position: absolute;
   left: 16px;
-  bottom: 154px;
+  bottom: 96px;
   z-index: 5;
-  width: 286px;
-  max-height: calc(100vh - 42px);
+  width: min(300px, calc(100vw - 32px));
+  max-height: calc(100vh - 128px);
+  box-sizing: border-box;
   overflow: auto;
   padding: 12px;
   border: 1px solid rgba(42, 50, 66, 0.14);
@@ -93,6 +94,7 @@ button {
 
 .settings-panel select,
 .timer-controls input,
+.character-rotation input[type="number"],
 .reminder-settings input[type="number"],
 .reminder-settings textarea {
   width: 100%;
@@ -129,6 +131,77 @@ button {
   grid-column: 1 / -1;
   color: #6b7582;
   font-size: 11px;
+}
+
+.character-rotation {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(42, 50, 66, 0.1);
+}
+
+.character-rotation__toggle {
+  display: grid;
+  grid-template-columns: 1fr 34px;
+  align-items: center;
+  gap: 10px;
+  color: #26313f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.character-rotation__toggle input {
+  width: 18px;
+  height: 18px;
+  justify-self: end;
+}
+
+.character-rotation__interval {
+  display: grid;
+  grid-template-columns: auto 64px 1fr;
+  align-items: center;
+  gap: 6px;
+  color: #526070;
+  font-size: 12px;
+}
+
+.character-rotation__pool {
+  display: grid;
+  gap: 6px;
+  color: #526070;
+  font-size: 12px;
+}
+
+.character-rotation__pool > div {
+  display: grid;
+  gap: 5px;
+  max-height: 92px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid rgba(42, 50, 66, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.character-rotation__pool label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  color: #26313f;
+}
+
+.character-rotation__pool input {
+  width: 15px;
+  height: 15px;
+}
+
+.character-rotation__pool span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .reminder-settings {
@@ -216,6 +289,14 @@ button {
   margin: 0;
   color: #9f2d2d;
   font-size: 12px;
+  line-height: 1.35;
+}
+
+.reminder-settings__saved {
+  margin: -2px 0 0;
+  color: #2f6f4f;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -365,6 +446,10 @@ button {
     idle-float 4.5s ease-in-out 720ms infinite;
 }
 
+.pet--switching .pet__image {
+  animation: character-switch 440ms ease;
+}
+
 .pet__image {
   display: block;
   width: 100%;
@@ -457,5 +542,22 @@ button {
   to {
     opacity: 1;
     translate: 0 0;
+  }
+}
+
+@keyframes character-switch {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.015);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

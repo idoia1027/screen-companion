@@ -1,4 +1,4 @@
-# Working Memory
+﻿# Working Memory
 
 ## User Preferences
 
@@ -41,6 +41,7 @@ electron/preload.ts
 src/App.tsx
 src/components/Pet.tsx
 src/components/SettingsPanel.tsx
+src/components/CharacterRotationControls.tsx
 src/components/ReminderSettingsControls.tsx
 src/components/TimerControls.tsx
 src/components/SpeechBubble.tsx
@@ -88,12 +89,17 @@ Current app behavior after latest fixes:
 - Settings can switch character and adjust timer/scale.
 - Continuous screen-usage tracking can trigger a reminder bubble.
 - Reminder settings can be edited and saved locally.
+- Reminder settings save shows visible feedback: `Saving...`, `Saved`, and `Saved locally.`
 - Reminder message supports free text, including Chinese text.
-- Quick-fill buttons only fill the reminder message input.
+- Quick-fill buttons only fill the reminder message input and currently use Chinese labels.
 - Users can import their own PNG/WebP/GIF/JPG character images.
 - Imported custom characters are copied into Electron user data and loaded via `screen-companion-character://`.
 - Selected character and custom character list persist locally.
 - JPG/JPEG import is supported, but the image keeps its original rectangular background because there is no background removal.
+- Random character rotation is implemented and enabled by default.
+- Rotation defaults to 60 minutes and can be disabled for a fixed selected character.
+- Users can choose which built-in/custom characters participate in the rotation pool.
+- New imported custom characters are added to the rotation pool by default.
 - The development build may show `Test reminder`; final packaged user builds should not expose test mode.
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
@@ -142,6 +148,14 @@ Current distribution installer:
 ```txt
 release/Screen Companion Setup 0.1.0.exe
 ```
+
+Latest existing installer timestamp:
+
+```txt
+2026-06-02 00:53
+```
+
+This installer includes the June 2 character rotation, settings-panel positioning fix, and Save feedback fix.
 
 Portable single-file output:
 
@@ -214,9 +228,9 @@ Future rule:
 
 ## Next Product Priorities
 
-1. Manually verify custom image import in the desktop app with transparent PNG/WebP/GIF and opaque JPG/JPEG samples.
-2. Package a fresh Windows build from the current accepted dev state.
-3. Make the settings panel feel spatially connected to the companion.
+1. Manually verify character rotation in the Electron desktop app with a short interval.
+2. Manually verify custom image import in the desktop app with transparent PNG/WebP/GIF and opaque JPG/JPEG samples.
+3. Package a fresh Windows build from the current accepted dev state.
 4. Move reminder bubble so it does not cover the face.
 5. Persist scale and window position.
 6. Decide whether temporary renderer console logs should stay.
@@ -277,6 +291,8 @@ Latest local feature commit:
 1f9350b Add custom character import
 ```
 
+Current uncommitted June 2 work includes character rotation, settings-panel positioning fixes, reminder Save feedback, README updates, and PROJECT/MEMORY updates. Do not describe this work as pushed until it is committed and synced.
+
 Because local `git push` over HTTPS was unreliable, the latest feature file tree was synced to GitHub `main` through the GitHub API fallback.
 
 Remote `main` was verified to include:
@@ -300,6 +316,8 @@ Treat the continuous screen-usage reminder as implemented and user-accepted for 
 
 Treat custom character import as implemented, build-validated, and synced to GitHub. It still needs real desktop manual verification with at least one transparent image and one JPG/JPEG before calling the user-facing flow fully accepted.
 
+Treat character rotation as implemented and build-validated in dev, but not packaged or pushed yet. It still needs real Electron desktop verification with a short interval before sharing a new installer.
+
 ## Custom Character Import
 
 New behavior:
@@ -322,3 +340,23 @@ screen-companion-character://<custom-character-id>
 - Custom characters can be removed from Settings.
 - Removing the selected custom character falls back to `cutout-1`.
 - This feature intentionally does not do background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its original rectangular background.
+
+## Character Rotation
+
+New behavior:
+
+- Random character rotation is enabled by default.
+- Default interval is 60 minutes.
+- Users can choose which built-in/custom characters participate in the rotation pool.
+- Users can disable random rotation to keep one fixed selected character.
+- New imported custom characters are added to the rotation pool by default.
+- Removing a custom character also removes it from the rotation pool.
+- Character switching uses a lightweight image animation.
+- Rotation settings persist in `settings.json` through the existing app settings flow.
+
+UI notes:
+
+- Settings panel must not be anchored to the top of the transparent Electron window. That caused the panel to be clipped when the app window was near the screen edge.
+- Current safer positioning anchors the panel above the companion with a bounded max height and internal scrolling.
+- If settings become too crowded, prefer collapsible sections or tabs instead of making one long always-open panel.
+- Reminder Save must show visible feedback so the user does not think the click failed.

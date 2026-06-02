@@ -52,6 +52,9 @@ Implemented and currently considered working:
 - Local persistence for reminder enablement, trigger interval, idle break threshold, and message
 - User-imported custom companion images, with transparent PNG/WebP/GIF recommended and JPG/JPEG allowed without background removal
 - Local persistence for custom character list and selected character
+- Character random rotation settings, including enabled state, interval, and selected rotation pool
+- Fixed-character mode when random rotation is disabled
+- Reminder settings save feedback with `Saving...`, `Saved`, and `Saved locally.`
 - Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
@@ -120,6 +123,27 @@ Manual verification still recommended:
 - Import one JPG/JPEG and confirm it appears with its original rectangular background.
 - Restart the app and confirm the selected custom character persists.
 - Remove the selected custom character and confirm the app falls back to `cutout-1`.
+
+Latest character rotation implementation update:
+
+- Random character rotation is implemented and enabled by default.
+- Default rotation interval is 60 minutes.
+- Users can choose which built-in and custom characters participate in the rotation pool.
+- Users can disable rotation and keep one fixed selected character.
+- New imported custom characters are added to the rotation pool by default.
+- Removing a custom character also removes it from the rotation pool.
+- Character switching uses a lightweight image animation.
+- Rotation settings persist in `settings.json`.
+- Settings panel positioning was corrected after a bad top-anchored layout caused the panel to be clipped near the screen edge.
+- Reminder settings `Save` now has visible feedback: `Saving...`, `Saved`, and `Saved locally.`
+- Reminder quick-fill labels were corrected to Chinese text.
+- `npm.cmd run build` passed after these changes.
+
+Current packaging note:
+
+- The newest existing installer in `release/` was built on `2026-06-02 00:53`.
+- This package includes character rotation, settings-panel positioning fixes, and reminder Save feedback.
+- Use `release/Screen Companion Setup 0.1.0.exe` for sharing with friends.
 
 Latest packaging outputs:
 
@@ -220,10 +244,9 @@ D:\PERSONAL\companion genie
 
 ## Next Priorities
 
-1. Manually verify custom character import in the desktop app with PNG/WebP/GIF and JPG/JPEG samples.
-2. Package a fresh Windows build after custom import is accepted.
-3. Clean up settings panel placement so it feels attached to the companion, not floating far away.
+1. Manually verify character rotation in the Electron desktop app with a short interval.
+2. Manually verify custom character import in the desktop app with PNG/WebP/GIF and JPG/JPEG samples.
+3. Package a fresh Windows build after the current dev behavior is accepted.
 4. Reposition reminder bubble so it does not cover the face.
 5. Persist window position and scale.
-6. Remove or reduce temporary debug logging if it is no longer needed.
-7. Improve icon and visual polish.
+6. Improve icon and visual polish.

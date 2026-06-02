@@ -3,7 +3,17 @@ import { basename, dirname, extname, join } from 'node:path';
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import type { AppSettings, CustomCharacter, StoredCustomCharacter, StoredSettings } from '../src/shared/appSettings';
+import type {
+  AppSettings,
+  CharacterRotationSettings,
+  CustomCharacter,
+  StoredCustomCharacter,
+  StoredSettings,
+} from '../src/shared/appSettings';
+import {
+  DEFAULT_CHARACTER_ROTATION_SETTINGS,
+  sanitizeCharacterRotationSettings,
+} from '../src/shared/appSettings';
 import {
   DEFAULT_REMINDER_SETTINGS,
   type ReminderSettings,
@@ -14,6 +24,7 @@ let mainWindow: BrowserWindow | null = null;
 const logPath = join(tmpdir(), 'screen-companion-main.log');
 const usagePollIntervalMs = 15_000;
 let reminderSettings: ReminderSettings = DEFAULT_REMINDER_SETTINGS;
+let characterRotationSettings: CharacterRotationSettings = DEFAULT_CHARACTER_ROTATION_SETTINGS;
 let selectedCharacterId = 'cutout-1';
 let customCharacters: StoredCustomCharacter[] = [];
 let activeUsageSeconds = 0;
@@ -78,6 +89,7 @@ const writeStoredSettings = () => {
       {
         selectedCharacterId,
         customCharacters,
+        characterRotationSettings,
         reminderSettings,
       },
       null,
@@ -109,11 +121,15 @@ const registerCustomCharacterProtocol = () => {
 const getAppSettings = (): AppSettings => ({
   selectedCharacterId,
   customCharacters: customCharacters.filter((character) => existsSync(character.imagePath)).map(toCustomCharacter),
+  characterRotationSettings,
 });
 
 const loadReminderSettings = () => {
   const storedSettings = readStoredSettings();
   reminderSettings = sanitizeReminderSettings(storedSettings.reminderSettings as Partial<ReminderSettings>);
+  characterRotationSettings = sanitizeCharacterRotationSettings(
+    storedSettings.characterRotationSettings as Partial<CharacterRotationSettings>,
+  );
   selectedCharacterId = typeof storedSettings.selectedCharacterId === 'string' ? storedSettings.selectedCharacterId : 'cutout-1';
   customCharacters = Array.isArray(storedSettings.customCharacters)
     ? storedSettings.customCharacters.filter(
@@ -147,6 +163,12 @@ const saveSelectedCharacter = (characterId: string) => {
   selectedCharacterId = characterId;
   writeStoredSettings();
   return selectedCharacterId;
+};
+
+const saveCharacterRotationSettings = (settings: CharacterRotationSettings) => {
+  characterRotationSettings = sanitizeCharacterRotationSettings(settings);
+  writeStoredSettings();
+  return characterRotationSettings;
 };
 
 const importCustomCharacter = async () => {
@@ -204,6 +226,10 @@ const removeCustomCharacter = (characterId: string) => {
   }
 
   customCharacters = customCharacters.filter((item) => item.id !== characterId);
+  characterRotationSettings = {
+    ...characterRotationSettings,
+    rotationCharacterIds: characterRotationSettings.rotationCharacterIds.filter((id) => id !== characterId),
+  };
   rmSync(character.imagePath, { force: true });
 
   if (selectedCharacterId === characterId) {
@@ -397,6 +423,10 @@ ipcMain.handle('app-settings:get', () => {
 
 ipcMain.handle('character:select', (_event, characterId: string) => {
   return saveSelectedCharacter(characterId);
+});
+
+ipcMain.handle('character-rotation:save', (_event, settings: CharacterRotationSettings) => {
+  return saveCharacterRotationSettings(settings);
 });
 
 ipcMain.handle('character:import', () => {

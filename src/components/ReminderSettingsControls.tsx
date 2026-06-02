@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useState } from 'react';
+import { KeyboardEvent, useEffect, useRef, useState } from 'react';
 import {
   DEFAULT_REMINDER_SETTINGS,
   IDLE_BREAK_RANGE,
@@ -8,7 +8,7 @@ import {
 
 type ReminderSettingsControlsProps = {
   settings: ReminderSettings;
-  onSave: (settings: ReminderSettings) => void;
+  onSave: (settings: ReminderSettings) => Promise<void> | void;
   onRestoreDefaults: () => void;
   onTestReminder?: () => void;
 };
@@ -31,6 +31,8 @@ const ReminderSettingsControls = ({
   const [idleMinutes, setIdleMinutes] = useState(String(settings.idleBreakThresholdMinutes));
   const [message, setMessage] = useState(settings.reminderMessage);
   const [error, setError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setReminderEnabled(settings.reminderEnabled);
@@ -40,7 +42,32 @@ const ReminderSettingsControls = ({
     setError(null);
   }, [settings]);
 
-  const saveDraft = () => {
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) {
+        clearTimeout(savedTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const markDirty = () => {
+    setSaveState('idle');
+  };
+
+  const showSaved = () => {
+    setSaveState('saved');
+
+    if (savedTimeoutRef.current) {
+      clearTimeout(savedTimeoutRef.current);
+    }
+
+    savedTimeoutRef.current = setTimeout(() => {
+      setSaveState('idle');
+      savedTimeoutRef.current = null;
+    }, 1800);
+  };
+
+  const saveDraft = async () => {
     if (!isValidNumber(triggerMinutes, REMINDER_TRIGGER_RANGE.min, REMINDER_TRIGGER_RANGE.max)) {
       setError(`Reminder interval must be ${REMINDER_TRIGGER_RANGE.min}-${REMINDER_TRIGGER_RANGE.max} minutes.`);
       return;
@@ -57,17 +84,25 @@ const ReminderSettingsControls = ({
     }
 
     setError(null);
-    onSave({
-      reminderEnabled,
-      reminderTriggerMinutes: Number(triggerMinutes),
-      idleBreakThresholdMinutes: Number(idleMinutes),
-      reminderMessage: message.trim(),
-    });
+    setSaveState('saving');
+
+    try {
+      await onSave({
+        reminderEnabled,
+        reminderTriggerMinutes: Number(triggerMinutes),
+        idleBreakThresholdMinutes: Number(idleMinutes),
+        reminderMessage: message.trim(),
+      });
+      showSaved();
+    } catch {
+      setSaveState('idle');
+      setError('Could not save settings. Please try again.');
+    }
   };
 
   const handleNumberKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      saveDraft();
+      void saveDraft();
     }
   };
 
@@ -77,6 +112,7 @@ const ReminderSettingsControls = ({
     setIdleMinutes(String(DEFAULT_REMINDER_SETTINGS.idleBreakThresholdMinutes));
     setMessage(DEFAULT_REMINDER_SETTINGS.reminderMessage);
     setError(null);
+    setSaveState('idle');
     onRestoreDefaults();
   };
 
@@ -87,7 +123,10 @@ const ReminderSettingsControls = ({
         <input
           type="checkbox"
           checked={reminderEnabled}
-          onChange={(event) => setReminderEnabled(event.target.checked)}
+          onChange={(event) => {
+            setReminderEnabled(event.target.checked);
+            markDirty();
+          }}
         />
       </label>
 
@@ -102,7 +141,10 @@ const ReminderSettingsControls = ({
             step="1"
             inputMode="numeric"
             value={triggerMinutes}
-            onChange={(event) => setTriggerMinutes(event.target.value)}
+            onChange={(event) => {
+              setTriggerMinutes(event.target.value);
+              markDirty();
+            }}
             onKeyDown={handleNumberKeyDown}
           />
           minutes
@@ -120,7 +162,10 @@ const ReminderSettingsControls = ({
             step="1"
             inputMode="numeric"
             value={idleMinutes}
-            onChange={(event) => setIdleMinutes(event.target.value)}
+            onChange={(event) => {
+              setIdleMinutes(event.target.value);
+              markDirty();
+            }}
             onKeyDown={handleNumberKeyDown}
           />
           idle minutes as a break
@@ -129,14 +174,28 @@ const ReminderSettingsControls = ({
 
       <label className="settings-panel__field">
         <span>Reminder message</span>
-        <textarea value={message} rows={3} onChange={(event) => setMessage(event.target.value)} />
+        <textarea
+          value={message}
+          rows={3}
+          onChange={(event) => {
+            setMessage(event.target.value);
+            markDirty();
+          }}
+        />
       </label>
 
       <div className="reminder-settings__quick-fill" aria-label="Quick fill reminder message">
         <span>Quick fill</span>
         <div>
           {quickFillMessages.map((quickMessage) => (
-            <button key={quickMessage} type="button" onClick={() => setMessage(quickMessage)}>
+            <button
+              key={quickMessage}
+              type="button"
+              onClick={() => {
+                setMessage(quickMessage);
+                markDirty();
+              }}
+            >
               {quickMessage}
             </button>
           ))}
@@ -146,13 +205,15 @@ const ReminderSettingsControls = ({
       {error ? <p className="reminder-settings__error">{error}</p> : null}
 
       <div className="reminder-settings__actions">
-        <button type="button" onClick={saveDraft}>
-          Save
+        <button type="button" onClick={() => void saveDraft()} disabled={saveState === 'saving'}>
+          {saveState === 'saving' ? 'Saving...' : saveState === 'saved' ? 'Saved' : 'Save'}
         </button>
         <button type="button" onClick={restoreDefaults}>
           Restore defaults
         </button>
       </div>
+
+      {saveState === 'saved' ? <p className="reminder-settings__saved">Saved locally.</p> : null}
 
       {onTestReminder ? (
         <button className="reminder-settings__test" type="button" onClick={onTestReminder}>

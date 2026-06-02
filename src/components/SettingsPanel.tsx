@@ -1,5 +1,7 @@
 import type { Character } from '../data/characters';
+import type { CharacterRotationSettings } from '../shared/appSettings';
 import type { ReminderSettings } from '../shared/reminderSettings';
+import CharacterRotationControls from './CharacterRotationControls';
 import ReminderSettingsControls from './ReminderSettingsControls';
 
 type SettingsPanelProps = {
@@ -7,7 +9,9 @@ type SettingsPanelProps = {
   selectedCharacterId: string;
   petScale: number;
   reminderSettings: ReminderSettings;
+  characterRotationSettings: CharacterRotationSettings;
   onCharacterChange: (characterId: string) => void;
+  onSaveCharacterRotationSettings: (settings: CharacterRotationSettings) => void;
   onImportCharacter: () => void;
   onRemoveCustomCharacter: (characterId: string) => void;
   onPetScaleChange: (scale: number) => void;
@@ -22,7 +26,9 @@ const SettingsPanel = ({
   selectedCharacterId,
   petScale,
   reminderSettings,
+  characterRotationSettings,
   onCharacterChange,
+  onSaveCharacterRotationSettings,
   onImportCharacter,
   onRemoveCustomCharacter,
   onPetScaleChange,
@@ -66,6 +72,11 @@ const SettingsPanel = ({
         ) : null}
         <span>PNG / WebP / GIF / JPG</span>
       </div>
+      <CharacterRotationControls
+        characters={characters}
+        settings={characterRotationSettings}
+        onSave={onSaveCharacterRotationSettings}
+      />
       <ReminderSettingsControls
         settings={reminderSettings}
         onSave={onSaveReminderSettings}

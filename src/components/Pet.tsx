@@ -7,6 +7,7 @@ type PetProps = {
   scale: number;
   reminderMessage: string | null;
   isReminding: boolean;
+  isSwitching: boolean;
   onDismissReminder: () => void;
   onOpenSettings: () => void;
   onCloseApp: () => void;
@@ -17,6 +18,7 @@ const Pet = ({
   scale,
   reminderMessage,
   isReminding,
+  isSwitching,
   onDismissReminder,
   onOpenSettings,
   onCloseApp,
@@ -27,7 +29,7 @@ const Pet = ({
     <section className="pet-stage" aria-label="Screen companion">
       {reminderMessage ? <SpeechBubble message={reminderMessage} onDismiss={onDismissReminder} /> : null}
       <div
-        className={`pet ${isReminding ? 'pet--reminding' : ''}`}
+        className={`pet ${isReminding ? 'pet--reminding' : ''} ${isSwitching ? 'pet--switching' : ''}`}
         style={{ ['--pet-scale' as string]: scale * (character.defaultScale ?? 1) }}
         onContextMenu={(event) => {
           event.preventDefault();
