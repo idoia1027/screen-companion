@@ -254,9 +254,29 @@ Recommended future location if moving:
 D:\PERSONAL\companion genie
 ```
 
+## Known Unresolved Issue (v0.2.1)
+
+**Companion window still blocks interaction with Claude Code (CC) in some cases.**
+
+Symptom: when Screen Companion is running and positioned over the CC window area, the user cannot click to confirm options or type in CC. Closing the companion restores normal CC interaction.
+
+What has been tried:
+- `setIgnoreMouseEvents(true, { forward: true })` set as default — should pass OS-level mouse events through transparent areas
+- Toggle to `false` on mouseenter of pet / settings panel / speech bubble, back to `true` on mouseleave (50ms debounce, shared timer in App.tsx)
+- `mainWindow.focus()` removed from startup — was stealing keyboard focus
+- `window.blur()` called when settings panel closes — returns keyboard focus to previous app
+- Settings panel `onMouseEnter`/`onMouseLeave` correctly attached to `<aside>` (not a zero-size wrapper div)
+
+Suspected remaining cause: the companion window (520×620px) may still intercept events in edge cases — e.g. when `setIgnoreMouseEvents` briefly flips to `false` while the user is trying to interact with CC, or when window focus hasn't fully transferred back after companion interaction. Exact repro path not yet isolated.
+
+Next steps to investigate:
+- Add a "passthrough lock" toggle button on the companion so the user can force `setIgnoreMouseEvents(true)` while working in CC
+- Persist window position so companion doesn't default to overlapping CC
+- Check if Electron 31 has known issues with `setIgnoreMouseEvents` + `forward: true` on Windows 11
+
 ## Next Priorities
 
-1. Verify v0.2.1 fixes: click-through, CC input no longer blocked, settings panel stays stable when dragging.
+1. Investigate and fix CC interaction blocking (see Known Unresolved Issue above).
 2. Reposition reminder bubble so it does not cover the face.
 3. Persist window position across restarts.
 4. Improve app icon (current is placeholder).
