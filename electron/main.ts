@@ -319,7 +319,8 @@ const createWindow = () => {
     },
   });
 
-  mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  mainWindow.setAlwaysOnTop(true, 'floating');
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
   mainWindow.webContents.once('did-finish-load', () => {
     logMain('renderer:did-finish-load');
     mainWindow?.show();
@@ -394,6 +395,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+ipcMain.on('window:set-ignore-mouse-events', (_event, ignore: boolean) => {
+  mainWindow?.setIgnoreMouseEvents(ignore, { forward: true });
 });
 
 ipcMain.on('window:move-by', (_event, delta: { x: number; y: number }) => {

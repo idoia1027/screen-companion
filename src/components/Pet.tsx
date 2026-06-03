@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { Character } from '../data/characters';
 import SpeechBubble from './SpeechBubble';
 import { useDraggable } from '../hooks/useDraggable';
@@ -24,13 +25,35 @@ const Pet = ({
   onCloseApp,
 }: PetProps) => {
   const dragHandlers = useDraggable();
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleInteractiveEnter = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    window.companionApi.setIgnoreMouseEvents(false);
+  };
+
+  const handleInteractiveLeave = () => {
+    leaveTimerRef.current = setTimeout(() => {
+      window.companionApi.setIgnoreMouseEvents(true);
+      leaveTimerRef.current = null;
+    }, 50);
+  };
 
   return (
     <section className="pet-stage" aria-label="Screen companion">
-      {reminderMessage ? <SpeechBubble message={reminderMessage} onDismiss={onDismissReminder} /> : null}
+      {reminderMessage ? (
+        <div onMouseEnter={handleInteractiveEnter} onMouseLeave={handleInteractiveLeave}>
+          <SpeechBubble message={reminderMessage} onDismiss={onDismissReminder} />
+        </div>
+      ) : null}
       <div
         className={`pet ${isReminding ? 'pet--reminding' : ''} ${isSwitching ? 'pet--switching' : ''}`}
         style={{ ['--pet-scale' as string]: scale * (character.defaultScale ?? 1) }}
+        onMouseEnter={handleInteractiveEnter}
+        onMouseLeave={handleInteractiveLeave}
         onContextMenu={(event) => {
           event.preventDefault();
           onOpenSettings();
@@ -47,7 +70,12 @@ const Pet = ({
           onPointerCancel={dragHandlers.onPointerCancel}
         />
       </div>
-      <div className="pet-actions" aria-label="Companion actions">
+      <div
+        className="pet-actions"
+        aria-label="Companion actions"
+        onMouseEnter={handleInteractiveEnter}
+        onMouseLeave={handleInteractiveLeave}
+      >
         <button type="button" aria-label="Open settings" title="Settings" onClick={onOpenSettings}>
           SET
         </button>

@@ -11,6 +11,9 @@ const companionApi = {
   moveWindowBy(delta: { x: number; y: number }) {
     ipcRenderer.send('window:move-by', delta);
   },
+  setIgnoreMouseEvents(ignore: boolean) {
+    ipcRenderer.send('window:set-ignore-mouse-events', ignore);
+  },
   closeApp() {
     ipcRenderer.send('app:close');
   },

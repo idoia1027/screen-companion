@@ -15,6 +15,7 @@ if (import.meta.env.DEV && !window.companionApi) {
 
   window.companionApi = {
     moveWindowBy() {},
+    setIgnoreMouseEvents() {},
     closeApp() {},
     async getReminderSettings() {
       return reminderSettings;
