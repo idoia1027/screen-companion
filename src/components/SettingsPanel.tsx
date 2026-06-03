@@ -19,6 +19,8 @@ type SettingsPanelProps = {
   onRestoreReminderDefaults: () => void;
   onCloseSettings: () => void;
   onTestReminder?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 };
 
 const SettingsPanel = ({
@@ -36,6 +38,8 @@ const SettingsPanel = ({
   onRestoreReminderDefaults,
   onCloseSettings,
   onTestReminder,
+  onMouseEnter,
+  onMouseLeave,
 }: SettingsPanelProps) => {
   const selectedCharacter = characters.find((character) => character.id === selectedCharacterId) ?? characters[0];
 
@@ -44,6 +48,8 @@ const SettingsPanel = ({
       className="settings-panel"
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="settings-panel__header">
         <span>Settings</span>

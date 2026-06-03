@@ -42,9 +42,11 @@ Do not add these to MVP:
 Implemented and currently considered working:
 
 - Transparent frameless Electron window
-- Always-on-top behavior
-- Local transparent PNG character assets
-- Two selectable characters
+- Always-on-top behavior (`floating` level — not `screen-saver`)
+- Mouse click-through on transparent areas via `setIgnoreMouseEvents(true, { forward: true })` default; temporarily disabled on mouseenter of pet, settings panel, and speech bubble, restored on mouseleave (50ms debounce shared in App.tsx)
+- No keyboard focus stealing on startup — `mainWindow.focus()` removed from `did-finish-load`
+- Aero Snap resize blocked via `will-resize` event handler
+- Local transparent PNG character assets (two built-in: cutout-1, cutout-2)
 - Custom React pointer-based window dragging from the character image
 - Character size control through settings
 - Continuous screen-usage reminder settings
@@ -60,10 +62,12 @@ Implemented and currently considered working:
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
 - Windows installer, portable exe, and `win-unpacked` packaging output
 
-Important implementation detail:
+Important implementation details:
 
 - Do not use CSS `-webkit-app-region: drag` on the character image. It caused transparent-window hit testing problems and swallowed clicks on settings/reminder buttons.
 - Dragging is handled through `src/hooks/useDraggable.ts`, which sends `window.companionApi.moveWindowBy(...)` through preload IPC.
+- `setIgnoreMouseEvents` handlers are lifted to `App.tsx` (not inside `Pet.tsx`) so the shared debounce timer covers both Pet and SettingsPanel. Moving between the two does not re-enable passthrough.
+- `transparent-companion.png` exists in `src/assets/characters/` but is intentionally NOT registered in `characters.ts` — it is a development placeholder, not a distributable character asset.
 
 ## Current UX Direction
 
@@ -141,22 +145,30 @@ Latest character rotation implementation update:
 
 Current packaging note:
 
-- The newest existing installer in `release/` was built on `2026-06-02 00:53`.
-- This package includes character rotation, settings-panel positioning fixes, and reminder Save feedback.
-- Use `release/Screen Companion Setup 0.1.0.exe` for sharing with friends.
+- Current release: v0.2.1 (2026-06-03)
+- Repo is public: https://github.com/idoia1027/screen-companion
+- Installer direct link: https://github.com/idoia1027/screen-companion/releases/download/v0.2.1/Screen.Companion.Setup.0.2.1.exe
+
+v0.2.1 fixes:
+- Mouse click-through on transparent window areas (setIgnoreMouseEvents)
+- Keyboard focus no longer stolen on startup
+- Settings panel no longer grows when window moved near screen edge (Aero Snap blocked, max-height fixed to 490px)
+- Settings panel and speech bubble covered by shared mouse event handler
+- Removed ugly transparent-companion.png from built-in character list
+- alwaysOnTop level: screen-saver → floating
 
 Latest packaging outputs:
 
 ```txt
-release/Screen Companion Setup 0.1.0.exe
-release/Screen Companion 0.1.0.exe
+release/Screen Companion Setup 0.2.1.exe
+release/Screen Companion 0.2.1.exe
 release/win-unpacked/Screen Companion.exe
 ```
 
 Use for distribution:
 
 ```txt
-release/Screen Companion Setup 0.1.0.exe
+release/Screen Companion Setup 0.2.1.exe
 ```
 
 Use for fast local testing:
@@ -244,9 +256,8 @@ D:\PERSONAL\companion genie
 
 ## Next Priorities
 
-1. Manually verify character rotation in the Electron desktop app with a short interval.
-2. Manually verify custom character import in the desktop app with PNG/WebP/GIF and JPG/JPEG samples.
-3. Package a fresh Windows build after the current dev behavior is accepted.
-4. Reposition reminder bubble so it does not cover the face.
-5. Persist window position and scale.
-6. Improve icon and visual polish.
+1. Verify v0.2.1 fixes: click-through, CC input no longer blocked, settings panel stays stable when dragging.
+2. Reposition reminder bubble so it does not cover the face.
+3. Persist window position across restarts.
+4. Improve app icon (current is placeholder).
+5. Add to BrieflyAI tools tab under Casual category once screenshots are available.

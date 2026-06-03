@@ -48,7 +48,7 @@ button {
   bottom: 96px;
   z-index: 5;
   width: min(300px, calc(100vw - 32px));
-  max-height: calc(100vh - 128px);
+  max-height: 490px;
   box-sizing: border-box;
   overflow: auto;
   padding: 12px;
@@ -236,7 +236,7 @@ button {
 }
 
 .reminder-settings textarea {
-  resize: vertical;
+  resize: none;
   min-height: 62px;
   line-height: 1.35;
 }

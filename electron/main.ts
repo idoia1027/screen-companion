@@ -321,10 +321,12 @@ const createWindow = () => {
 
   mainWindow.setAlwaysOnTop(true, 'floating');
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  mainWindow.on('will-resize', (event) => {
+    event.preventDefault();
+  });
   mainWindow.webContents.once('did-finish-load', () => {
     logMain('renderer:did-finish-load');
     mainWindow?.show();
-    mainWindow?.focus();
     mainWindow?.moveTop();
   });
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
@@ -337,7 +339,6 @@ const createWindow = () => {
     if (mainWindow && !mainWindow.isVisible()) {
       logMain('window:forced-show');
       mainWindow.show();
-      mainWindow.focus();
       mainWindow.moveTop();
     }
   }, 2500);

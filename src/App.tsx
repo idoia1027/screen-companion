@@ -16,6 +16,22 @@ const App = () => {
   const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [petScale, setPetScale] = useState(1);
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleInteractiveEnter = useCallback(() => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    window.companionApi.setIgnoreMouseEvents(false);
+  }, []);
+
+  const handleInteractiveLeave = useCallback(() => {
+    leaveTimerRef.current = setTimeout(() => {
+      window.companionApi.setIgnoreMouseEvents(true);
+      leaveTimerRef.current = null;
+    }, 50);
+  }, []);
   const [reminderSettings, setReminderSettings] = useState<ReminderSettings>(DEFAULT_REMINDER_SETTINGS);
   const [characterRotationSettings, setCharacterRotationSettings] = useState<CharacterRotationSettings>(
     DEFAULT_CHARACTER_ROTATION_SETTINGS,
@@ -205,8 +221,13 @@ const App = () => {
             void saveReminderSettings(settings);
           }}
           onRestoreReminderDefaults={restoreReminderDefaults}
-          onCloseSettings={() => setSettingsOpen(false)}
+          onCloseSettings={() => {
+            setSettingsOpen(false);
+            window.blur();
+          }}
           onTestReminder={isDevelopment ? handleTestReminder : undefined}
+          onMouseEnter={handleInteractiveEnter}
+          onMouseLeave={handleInteractiveLeave}
         />
       ) : null}
       <Pet
@@ -216,6 +237,8 @@ const App = () => {
         reminderMessage={reminderMessage}
         isReminding={Boolean(reminderMessage)}
         isSwitching={isCharacterSwitching}
+        onInteractiveEnter={handleInteractiveEnter}
+        onInteractiveLeave={handleInteractiveLeave}
         onDismissReminder={() => {
           console.log('action:dismiss-reminder');
           setReminderMessage(null);
