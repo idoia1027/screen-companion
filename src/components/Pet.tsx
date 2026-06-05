@@ -10,6 +10,8 @@ type PetProps = {
   isSwitching: boolean;
   onInteractiveEnter: () => void;
   onInteractiveLeave: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
   onDismissReminder: () => void;
   onOpenSettings: () => void;
   onCloseApp: () => void;
@@ -23,11 +25,13 @@ const Pet = ({
   isSwitching,
   onInteractiveEnter,
   onInteractiveLeave,
+  onDragStart,
+  onDragEnd,
   onDismissReminder,
   onOpenSettings,
   onCloseApp,
 }: PetProps) => {
-  const dragHandlers = useDraggable();
+  const dragHandlers = useDraggable(onDragStart, onDragEnd);
 
   return (
     <section className="pet-stage" aria-label="Screen companion">

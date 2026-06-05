@@ -387,6 +387,8 @@ button {
   cursor: default;
   -webkit-app-region: no-drag;
   animation: idle-float 4.5s ease-in-out infinite;
+  will-change: translate;
+  filter: drop-shadow(0 10px 15px rgba(27, 32, 40, 0.22));
 }
 
 .pet__image {
@@ -455,7 +457,6 @@ button {
   width: 100%;
   height: auto;
   -webkit-user-drag: none;
-  filter: drop-shadow(0 10px 15px rgba(27, 32, 40, 0.22));
 }
 
 .speech-bubble {

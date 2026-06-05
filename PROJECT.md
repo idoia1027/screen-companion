@@ -254,30 +254,25 @@ Recommended future location if moving:
 D:\PERSONAL\companion genie
 ```
 
-## Known Unresolved Issue (v0.2.1)
+## Mouse Passthrough Implementation
 
-**Companion window still blocks interaction with Claude Code (CC) in some cases.**
+Companion window is non-blocking by default. Implementation:
 
-Symptom: when Screen Companion is running and positioned over the CC window area, the user cannot click to confirm options or type in CC. Closing the companion restores normal CC interaction.
+- Default: `setIgnoreMouseEvents(true, { forward: true })` — all events pass through to apps below
+- Hover counter (`hoverCountRef`) tracks how many interactive areas the mouse is currently inside
+- `mouseenter` on Pet / SettingsPanel / SpeechBubble → counter++ → `setIgnoreMouseEvents(false)`
+- `mouseleave` → counter-- → if counter reaches 0 and not dragging → `setTimeout(0)` → `setIgnoreMouseEvents(true)`
+- `isDraggingRef` prevents passthrough from re-enabling mid-drag when mouse leaves pet bounds
+- Drag end → `setIgnoreMouseEvents(true)` + `window.blur()` to return keyboard focus
+- Settings panel close → force-resets counter to 0 + restores passthrough (handles unmount without mouseleave)
 
-What has been tried:
-- `setIgnoreMouseEvents(true, { forward: true })` set as default — should pass OS-level mouse events through transparent areas
-- Toggle to `false` on mouseenter of pet / settings panel / speech bubble, back to `true` on mouseleave (50ms debounce, shared timer in App.tsx)
-- `mainWindow.focus()` removed from startup — was stealing keyboard focus
-- `window.blur()` called when settings panel closes — returns keyboard focus to previous app
-- Settings panel `onMouseEnter`/`onMouseLeave` correctly attached to `<aside>` (not a zero-size wrapper div)
+The `setTimeout(0)` gap (vs. the old 50ms) allows Pet→SettingsPanel mouse transitions to register the next `mouseenter` before passthrough is restored, while eliminating the 50ms click-swallowing window that blocked CC interaction.
 
-Suspected remaining cause: the companion window (520×620px) may still intercept events in edge cases — e.g. when `setIgnoreMouseEvents` briefly flips to `false` while the user is trying to interact with CC, or when window focus hasn't fully transferred back after companion interaction. Exact repro path not yet isolated.
-
-Next steps to investigate:
-- Add a "passthrough lock" toggle button on the companion so the user can force `setIgnoreMouseEvents(true)` while working in CC
-- Persist window position so companion doesn't default to overlapping CC
-- Check if Electron 31 has known issues with `setIgnoreMouseEvents` + `forward: true` on Windows 11
+User-verified: companion running over CC no longer blocks clicks or keyboard input in CC.
 
 ## Next Priorities
 
-1. Investigate and fix CC interaction blocking (see Known Unresolved Issue above).
-2. Reposition reminder bubble so it does not cover the face.
-3. Persist window position across restarts.
-4. Improve app icon (current is placeholder).
-5. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+1. Reposition reminder bubble so it does not cover the face.
+2. Persist window position across restarts.
+3. Improve app icon (current is placeholder).
+4. Add to BrieflyAI tools tab under Casual category once screenshots are available.

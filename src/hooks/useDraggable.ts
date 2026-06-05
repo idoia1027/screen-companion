@@ -5,7 +5,7 @@ type DragPoint = {
   y: number;
 };
 
-export const useDraggable = () => {
+export const useDraggable = (onDragStart?: () => void, onDragEnd?: () => void) => {
   const lastPointRef = useRef<DragPoint | null>(null);
 
   const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
@@ -15,6 +15,7 @@ export const useDraggable = () => {
 
     lastPointRef.current = { x: event.screenX, y: event.screenY };
     event.currentTarget.setPointerCapture(event.pointerId);
+    onDragStart?.();
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
@@ -32,18 +33,20 @@ export const useDraggable = () => {
     lastPointRef.current = nextPoint;
   };
 
-  const onPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+  const finishDrag = (event: React.PointerEvent<HTMLElement>) => {
     lastPointRef.current = null;
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+
+    onDragEnd?.();
   };
 
   return {
     onPointerDown,
     onPointerMove,
-    onPointerUp,
-    onPointerCancel: onPointerUp,
+    onPointerUp: finishDrag,
+    onPointerCancel: finishDrag,
   };
 };

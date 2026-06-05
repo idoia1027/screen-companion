@@ -228,12 +228,10 @@ Future rule:
 
 ## Next Product Priorities
 
-1. Manually verify character rotation in the Electron desktop app with a short interval.
-2. Manually verify custom image import in the desktop app with transparent PNG/WebP/GIF and opaque JPG/JPEG samples.
-3. Package a fresh Windows build from the current accepted dev state.
-4. Move reminder bubble so it does not cover the face.
-5. Persist scale and window position.
-6. Decide whether temporary renderer console logs should stay.
+1. Move reminder bubble so it does not cover the face.
+2. Persist window position across restarts.
+3. Improve app icon (current is placeholder).
+4. Add to BrieflyAI tools tab once screenshots are available.
 
 ## Continuous Reminder Implementation
 

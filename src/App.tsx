@@ -16,21 +16,35 @@ const App = () => {
   const [customCharacters, setCustomCharacters] = useState<CustomCharacter[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [petScale, setPetScale] = useState(1);
-  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverCountRef = useRef(0);
+  const isDraggingRef = useRef(false);
 
   const handleInteractiveEnter = useCallback(() => {
-    if (leaveTimerRef.current) {
-      clearTimeout(leaveTimerRef.current);
-      leaveTimerRef.current = null;
-    }
+    hoverCountRef.current += 1;
     window.companionApi.setIgnoreMouseEvents(false);
   }, []);
 
   const handleInteractiveLeave = useCallback(() => {
-    leaveTimerRef.current = setTimeout(() => {
+    hoverCountRef.current = Math.max(0, hoverCountRef.current - 1);
+    if (hoverCountRef.current === 0 && !isDraggingRef.current) {
+      setTimeout(() => {
+        if (hoverCountRef.current === 0 && !isDraggingRef.current) {
+          window.companionApi.setIgnoreMouseEvents(true);
+        }
+      }, 0);
+    }
+  }, []);
+
+  const handleDragStart = useCallback(() => {
+    isDraggingRef.current = true;
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    isDraggingRef.current = false;
+    if (hoverCountRef.current === 0) {
       window.companionApi.setIgnoreMouseEvents(true);
-      leaveTimerRef.current = null;
-    }, 50);
+      window.blur();
+    }
   }, []);
   const [reminderSettings, setReminderSettings] = useState<ReminderSettings>(DEFAULT_REMINDER_SETTINGS);
   const [characterRotationSettings, setCharacterRotationSettings] = useState<CharacterRotationSettings>(
@@ -223,6 +237,8 @@ const App = () => {
           onRestoreReminderDefaults={restoreReminderDefaults}
           onCloseSettings={() => {
             setSettingsOpen(false);
+            hoverCountRef.current = 0;
+            window.companionApi.setIgnoreMouseEvents(true);
             window.blur();
           }}
           onTestReminder={isDevelopment ? handleTestReminder : undefined}
@@ -239,6 +255,8 @@ const App = () => {
         isSwitching={isCharacterSwitching}
         onInteractiveEnter={handleInteractiveEnter}
         onInteractiveLeave={handleInteractiveLeave}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDismissReminder={() => {
           console.log('action:dismiss-reminder');
           setReminderMessage(null);
