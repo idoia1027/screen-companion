@@ -83,79 +83,21 @@ Current expected main-view behavior:
 
 ## Latest Verified State
 
-Latest validated behavior from today's session:
+All features implemented and user-verified as of 2026-06-05:
 
-- `SET` click reaches React after removing CSS drag region.
-- `Test reminder` click reaches React.
-- Reminder appears after the test timer.
-- Reminder bubble `X` reaches React and dismisses the reminder.
-- `SET` / `X` are no longer always visible; they fade in on character hover.
-- Packaging command succeeded and produced updated files under `release/`.
+- Transparent frameless always-on-top window, character draggable, hover-only controls
+- Continuous screen-usage reminder (powerMonitor, 15s poll, user-configurable)
+- Custom character import (PNG/WebP/GIF/JPG, screen-companion-character:// protocol)
+- Character random rotation (default 60min, configurable pool)
+- CC interaction blocking resolved: companion no longer blocks clicks or keyboard in apps behind it
+- CSS animation runs on GPU (will-change: translate, drop-shadow on same compositing layer)
 
-Latest implementation update:
+Current packaging:
 
-- `docs/continuous-usage-reminder.md` captures the continuous screen-usage reminder requirement.
-- The old renderer-only countdown has been replaced as the reminder driver by main-process activity tracking.
-- The main process polls `powerMonitor.getSystemIdleTime()` every 15 seconds.
-- Reminder settings are stored in the app user data folder as `settings.json`.
-- Reminder disabling only disables reminder bubbles and animation; it does not hide or quit the companion.
-
-Latest user-verified behavior after the continuous reminder work:
-
-- The local dev app opens at `http://localhost:5173/` when `npm run dev` is running.
-- The continuous reminder settings UI appears and the user reported yesterday's feature behavior looks normal.
-- Reminder settings can be edited through the lightweight settings panel.
-- Custom reminder text is supported and remains part of the reminder bubble flow.
-- Disabling reminders is treated as a reminder-only toggle, not a companion visibility toggle.
-- The feature has been synced to the private GitHub repository `idoia1027/screen-companion` through the GitHub API fallback because local `git push` over HTTPS was unreliable.
-
-Latest custom character implementation update:
-
-- Settings now supports importing user-provided PNG, WebP, GIF, JPG, or JPEG assets.
-- Imported character files are copied to Electron user data under `custom-characters/`.
-- Custom character images are loaded through an internal `screen-companion-character://` protocol instead of direct `file://` paths.
-- The selected character and custom character list persist in `settings.json`.
-- Imported custom characters can be removed; if the selected custom character is removed, the app falls back to `cutout-1`.
-- This does not perform background removal. PNG/WebP/GIF can preserve transparency; JPG/JPEG will keep its rectangular background.
-- `npm.cmd run build` passed after the custom character import and JPG/JPEG support changes.
-- Local commit `1f9350b Add custom character import` was synced to the private GitHub repository through the GitHub API fallback.
-- Documentation progress is also tracked in Git and synced through the same GitHub API fallback when normal HTTPS push is unavailable.
-
-Manual verification still recommended:
-
-- Import one transparent PNG/WebP/GIF and confirm it appears as a cutout.
-- Import one JPG/JPEG and confirm it appears with its original rectangular background.
-- Restart the app and confirm the selected custom character persists.
-- Remove the selected custom character and confirm the app falls back to `cutout-1`.
-
-Latest character rotation implementation update:
-
-- Random character rotation is implemented and enabled by default.
-- Default rotation interval is 60 minutes.
-- Users can choose which built-in and custom characters participate in the rotation pool.
-- Users can disable rotation and keep one fixed selected character.
-- New imported custom characters are added to the rotation pool by default.
-- Removing a custom character also removes it from the rotation pool.
-- Character switching uses a lightweight image animation.
-- Rotation settings persist in `settings.json`.
-- Settings panel positioning was corrected after a bad top-anchored layout caused the panel to be clipped near the screen edge.
-- Reminder settings `Save` now has visible feedback: `Saving...`, `Saved`, and `Saved locally.`
-- Reminder quick-fill labels were corrected to Chinese text.
-- `npm.cmd run build` passed after these changes.
-
-Current packaging note:
-
-- Current release: v0.2.1 (2026-06-03)
-- Repo is public: https://github.com/idoia1027/screen-companion
-- Installer direct link: https://github.com/idoia1027/screen-companion/releases/download/v0.2.1/Screen.Companion.Setup.0.2.1.exe
-
-v0.2.1 fixes:
-- Mouse click-through on transparent window areas (setIgnoreMouseEvents)
-- Keyboard focus no longer stolen on startup
-- Settings panel no longer grows when window moved near screen edge (Aero Snap blocked, max-height fixed to 490px)
-- Settings panel and speech bubble covered by shared mouse event handler
-- Removed ugly transparent-companion.png from built-in character list
-- alwaysOnTop level: screen-saver → floating
+- Latest build: 2026-06-05 15:24, commit `b960cb4`
+- Repo: https://github.com/idoia1027/screen-companion (public)
+- Installer: `release/Screen Companion Setup 0.2.1.exe`
+- Portable: `release/Screen Companion 0.2.1.exe`
 
 Latest packaging outputs:
 

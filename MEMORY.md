@@ -104,11 +104,12 @@ Current app behavior after latest fixes:
 - Reminder bubble has a clickable `X` and was verified to dismiss.
 - Packaged outputs exist in `release/`.
 
-Important implementation note:
+Important implementation notes:
 
-- Do not put `-webkit-app-region: drag` back on `.pet__image`.
-- It made visible buttons fail to receive clicks in the transparent Electron window.
-- Use `src/hooks/useDraggable.ts` and preload IPC instead.
+- Do not put `-webkit-app-region: drag` back on `.pet__image`. Use `src/hooks/useDraggable.ts` and preload IPC instead.
+- Mouse passthrough uses a hover counter (`hoverCountRef`) not a timer. Counter increments on mouseenter of any interactive area, decrements on mouseleave. When counter hits 0 and not dragging, `setTimeout(0)` restores `setIgnoreMouseEvents(true)`. Do not revert to the 50ms timer — it caused clicks on apps behind the companion to be swallowed.
+- `isDraggingRef` blocks passthrough restoration during drag. `onDragEnd` restores passthrough and calls `window.blur()` to return keyboard focus.
+- Closing settings panel force-resets counter to 0 and restores passthrough, in case panel unmounts without firing `mouseleave`.
 
 ## Commands That Worked
 
@@ -146,36 +147,26 @@ Known environment issue:
 Current distribution installer:
 
 ```txt
-release/Screen Companion Setup 0.1.0.exe
+release/Screen Companion Setup 0.2.1.exe
 ```
 
-Latest existing installer timestamp:
+Latest build timestamp: 2026-06-05 15:24
 
-```txt
-2026-06-02 00:53
-```
-
-This installer includes the June 2 character rotation, settings-panel positioning fix, and Save feedback fix.
+This build includes all fixes through commit `b960cb4`: CC interaction blocking fix, CSS animation performance optimization, character rotation, custom image import, continuous reminder.
 
 Portable single-file output:
 
 ```txt
-release/Screen Companion 0.1.0.exe
+release/Screen Companion 0.2.1.exe
 ```
 
-Local unpacked test app:
+Local unpacked test app (fastest for local verification):
 
 ```txt
 release/win-unpacked/Screen Companion.exe
 ```
 
-For sharing with other people, use:
-
-```txt
-release/Screen Companion Setup 0.1.0.exe
-```
-
-Do not share only `release/win-unpacked/Screen Companion.exe`; it depends on the rest of the `win-unpacked` folder.
+For sharing with other people, use the Setup installer. Do not share only `win-unpacked/Screen Companion.exe` — it depends on the entire `win-unpacked` folder.
 
 ## Packaging Notes
 
@@ -271,50 +262,21 @@ Important UX rule:
 
 ## GitHub Sync State
 
-Private repository:
+Repository: https://github.com/idoia1027/screen-companion (public)
 
-```txt
-https://github.com/idoia1027/screen-companion
-```
+Branch: main — up to date with origin/main.
 
-Local branch:
+Latest commit: `b960cb4 fix: eliminate CC interaction blocking and reduce animation CPU usage` (2026-06-05)
 
-```txt
-main
-```
-
-Latest local feature commit:
-
-```txt
-1f9350b Add custom character import
-```
-
-Current uncommitted June 2 work includes character rotation, settings-panel positioning fixes, reminder Save feedback, README updates, and PROJECT/MEMORY updates. Do not describe this work as pushed until it is committed and synced.
-
-Because local `git push` over HTTPS was unreliable, the latest feature file tree was synced to GitHub `main` through the GitHub API fallback.
-
-Remote `main` was verified to include:
-
-```txt
-docs/continuous-usage-reminder.md
-README.md continuous reminder documentation
-README.md custom character import documentation with JPG/JPEG support
-src/shared/appSettings.ts
-```
-
-Documentation progress is also tracked in Git and synced through the same GitHub API fallback when normal HTTPS push is unavailable. Avoid hard-coding the remote API commit SHA in this memory file because each documentation sync creates a new remote commit.
-
-If normal GitHub connectivity improves later, prefer a normal `git push` flow again.
+Normal `git push` over HTTPS works. No API fallback needed.
 
 ## Latest User Verification
 
-The user reported that yesterday's continuous reminder behavior looks normal in the local app.
-
-Treat the continuous screen-usage reminder as implemented and user-accepted for the dev build, pending a fresh packaged Windows build and real packaged-app verification.
-
-Treat custom character import as implemented, build-validated, and synced to GitHub. It still needs real desktop manual verification with at least one transparent image and one JPG/JPEG before calling the user-facing flow fully accepted.
-
-Treat character rotation as implemented and build-validated in dev, but not packaged or pushed yet. It still needs real Electron desktop verification with a short interval before sharing a new installer.
+- Continuous screen-usage reminder: user-verified working in dev build.
+- Custom character import: implemented and synced. Manual desktop verification with transparent PNG and JPG still recommended but not blocking.
+- Character rotation: implemented and synced. Manual desktop verification with short interval still recommended but not blocking.
+- CC interaction blocking: **fixed and user-verified** (2026-06-05). Companion no longer blocks clicks or keyboard input in apps behind it.
+- CSS animation performance: `will-change: translate` added, `drop-shadow` moved to same compositing layer as animation. Reduces CPU usage on low-end machines.
 
 ## Custom Character Import
 
