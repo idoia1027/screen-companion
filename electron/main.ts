@@ -130,7 +130,7 @@ const loadReminderSettings = () => {
   characterRotationSettings = sanitizeCharacterRotationSettings(
     storedSettings.characterRotationSettings as Partial<CharacterRotationSettings>,
   );
-  selectedCharacterId = typeof storedSettings.selectedCharacterId === 'string' ? storedSettings.selectedCharacterId : 'cutout-1';
+  selectedCharacterId = typeof storedSettings.selectedCharacterId === 'string' ? storedSettings.selectedCharacterId : 'baibai';
   customCharacters = Array.isArray(storedSettings.customCharacters)
     ? storedSettings.customCharacters.filter(
         (character) =>
@@ -142,7 +142,7 @@ const loadReminderSettings = () => {
     : [];
 
   if (selectedCharacterId.startsWith('custom-') && !customCharacters.some((character) => character.id === selectedCharacterId)) {
-    selectedCharacterId = 'cutout-1';
+    selectedCharacterId = 'baibai';
   }
 
   return reminderSettings;

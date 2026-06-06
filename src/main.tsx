@@ -8,7 +8,7 @@ import './styles/global.css';
 if (import.meta.env.DEV && !window.companionApi) {
   let reminderSettings: ReminderSettings = DEFAULT_REMINDER_SETTINGS;
   let appSettings: AppSettings = {
-    selectedCharacterId: 'cutout-1',
+    selectedCharacterId: 'baibai',
     customCharacters: [],
     characterRotationSettings: DEFAULT_CHARACTER_ROTATION_SETTINGS,
   };
