@@ -59,13 +59,13 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.5.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "electron": "31.7.7",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^42.3.3",
     "electron-builder": "^26.8.1",
-    "electron-vite": "^2.3.0",
+    "electron-vite": "^5.0.0",
     "typescript": "^5.5.4",
-    "vite": "^5.4.19"
+    "vite": "^7.3.5"
   }
 }
