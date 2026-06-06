@@ -30,6 +30,7 @@ const App = () => {
       setTimeout(() => {
         if (hoverCountRef.current === 0 && !isDraggingRef.current) {
           window.companionApi.setIgnoreMouseEvents(true);
+          window.companionApi.blurWindow();
         }
       }, 0);
     }
@@ -239,7 +240,7 @@ const App = () => {
             setSettingsOpen(false);
             hoverCountRef.current = 0;
             window.companionApi.setIgnoreMouseEvents(true);
-            window.blur();
+            window.companionApi.blurWindow();
           }}
           onTestReminder={isDevelopment ? handleTestReminder : undefined}
           onMouseEnter={handleInteractiveEnter}

@@ -14,6 +14,9 @@ const companionApi = {
   setIgnoreMouseEvents(ignore: boolean) {
     ipcRenderer.send('window:set-ignore-mouse-events', ignore);
   },
+  blurWindow() {
+    ipcRenderer.send('window:blur');
+  },
   closeApp() {
     ipcRenderer.send('app:close');
   },

@@ -402,6 +402,10 @@ ipcMain.on('window:set-ignore-mouse-events', (_event, ignore: boolean) => {
   mainWindow?.setIgnoreMouseEvents(ignore, { forward: true });
 });
 
+ipcMain.on('window:blur', () => {
+  mainWindow?.blur();
+});
+
 ipcMain.on('window:move-by', (_event, delta: { x: number; y: number }) => {
   if (!mainWindow || !Number.isFinite(delta.x) || !Number.isFinite(delta.y)) {
     return;
