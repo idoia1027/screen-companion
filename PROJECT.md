@@ -218,3 +218,19 @@ User-verified: companion running over CC no longer blocks clicks or keyboard inp
 2. Persist window position across restarts.
 3. Improve app icon (current is placeholder).
 4. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+
+## macOS Migration Note (2026-06-07)
+
+The project now also runs on macOS (Apple Silicon) for day-to-day development. Notes:
+
+- **Mac dev environment set up and verified.** `npm install` + `npm run dev` run the app directly on macOS; no Windows-only steps required. See README "Run On macOS".
+- **GitHub SSH over port 443 workaround.** On this network, `github.com:22` was intercepted (resolved to a bogus `198.18.0.x` address) and SSH timed out. Fixed by routing GitHub SSH through `ssh.github.com:443` via `~/.ssh/config`:
+  ```
+  Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+  ```
+  `ssh -T git@github.com` and `git push` both work over this route.
+- **Toolchain verified.** Homebrew (used to install `gh`), Node/npm (clean `npm install`, 0 vulnerabilities), and Claude Code CLI are all working on the Mac. `gh` is authenticated and the SSH public key is registered on GitHub.
+- **screen-companion verified on Apple Silicon.** Electron binary is native `arm64`; `npm run dev` launches the transparent always-on-top companion window with no errors (only the standard dev-mode CSP/deprecation notices). Character renders and `did-finish-load` fires normally.
