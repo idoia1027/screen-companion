@@ -320,6 +320,8 @@ const createWindow = () => {
   });
 
   mainWindow.setAlwaysOnTop(true, 'floating');
+  // macOS: keep the companion visible across all Spaces and over fullscreen apps.
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
   mainWindow.on('will-resize', (event) => {
     event.preventDefault();
