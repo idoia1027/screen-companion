@@ -464,6 +464,9 @@ button {
   top: 0;
   font-size: 28px;
   line-height: 1;
+  /* Force text (not emoji) presentation so `color` wins on every platform;
+     pairs with the U+FE0E variation selector on the glyph itself. */
+  font-variant-emoji: text;
   color: #ff6b8b;
   text-shadow: 0 2px 8px rgba(255, 107, 139, 0.55);
   opacity: 0;
