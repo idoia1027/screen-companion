@@ -90,7 +90,10 @@ const Pet = ({
                   ['--heart-scale' as string]: heart.scale,
                 }}
               >
-                ❤
+                {/* U+2764 + U+FE0E forces text presentation so the CSS color
+                    applies on every platform (Windows would otherwise render a
+                    fixed-color emoji heart via Segoe UI Emoji). */}
+                {'❤︎'}
               </span>
             ))}
           </div>
