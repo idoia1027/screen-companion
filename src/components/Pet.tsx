@@ -2,6 +2,23 @@ import type { Character } from '../data/characters';
 import SpeechBubble from './SpeechBubble';
 import { useDraggable } from '../hooks/useDraggable';
 
+const HEART_COUNT = 14;
+
+// Pre-compute a radial spray of hearts: each fans out at an even angle around the
+// character's center, with slight per-heart variation in distance/size/delay so the
+// burst feels organic rather than mechanical. A global upward bias (-28px) makes the
+// hearts drift up as they scatter, which reads as more heart-like than a flat ring.
+const HEARTS = Array.from({ length: HEART_COUNT }, (_, index) => {
+  const angle = (index / HEART_COUNT) * Math.PI * 2 - Math.PI / 2;
+  const distance = 96 + (index % 3) * 22;
+  return {
+    dx: `${Math.cos(angle) * distance}px`,
+    dy: `${Math.sin(angle) * distance - 28}px`,
+    delay: `${(index % 5) * 55}ms`,
+    scale: 0.9 + (index % 3) * 0.3,
+  };
+});
+
 type PetProps = {
   character: Character;
   scale: number;
@@ -60,6 +77,24 @@ const Pet = ({
           onPointerUp={dragHandlers.onPointerUp}
           onPointerCancel={dragHandlers.onPointerCancel}
         />
+        {isReminding ? (
+          <div className="heart-burst" aria-hidden="true">
+            {HEARTS.map((heart, index) => (
+              <span
+                key={index}
+                className="heart-burst__heart"
+                style={{
+                  ['--dx' as string]: heart.dx,
+                  ['--dy' as string]: heart.dy,
+                  ['--delay' as string]: heart.delay,
+                  ['--heart-scale' as string]: heart.scale,
+                }}
+              >
+                ❤
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
       <div
         className="pet-actions"
