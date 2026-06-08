@@ -59,6 +59,7 @@ Implemented and currently considered working:
 - Reminder settings save feedback with `Saving...`, `Saved`, and `Saved locally.`
 - Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
+- Heart-burst animation on reminder: hearts radiate from the character's center, then fade
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
 - Windows installer, portable exe, and `win-unpacked` packaging output
 
@@ -234,3 +235,21 @@ The project now also runs on macOS (Apple Silicon) for day-to-day development. N
   `ssh -T git@github.com` and `git push` both work over this route.
 - **Toolchain verified.** Homebrew (used to install `gh`), Node/npm (clean `npm install`, 0 vulnerabilities), and Claude Code CLI are all working on the Mac. `gh` is authenticated and the SSH public key is registered on GitHub.
 - **screen-companion verified on Apple Silicon.** Electron binary is native `arm64`; `npm run dev` launches the transparent always-on-top companion window with no errors (only the standard dev-mode CSP/deprecation notices). Character renders and `did-finish-load` fires normally.
+
+## Heart-Burst Reminder Animation (2026-06-08)
+
+A celebratory heart-burst now plays when the usage reminder appears (in addition to the existing reminder bounce).
+
+- **What it does.** 14 hearts radiate from the character's center in a ring with a slight upward drift, peak ~300–500ms, then fade out by ~1s.
+- **Implementation.** Pure CSS keyframes (`heart-burst` in `src/styles/global.css`) plus a render layer in `src/components/Pet.tsx`. The hearts are precomputed once (even angles, slight per-heart distance/size/delay variation). The layer is `aria-hidden` and `pointer-events: none`, so it never blocks dragging or button clicks. It re-triggers on each reminder because `App.tsx` already remounts `<Pet>` via the `animationKey` key — no extra state needed.
+- **Cross-platform glyph hardening.** The heart glyph is `❤︎` (U+2764 + U+FE0E text variation selector) with `font-variant-emoji: text` on `.heart-burst__heart`. This forces text presentation so the CSS `color: #ff6b8b` applies on every platform. Without it, Windows can render U+2764 as a fixed-color Segoe UI Emoji heart and ignore the pink. macOS verified pink (`rgb(255,107,139)`); Windows no longer needs a separate color check.
+- **To tune.** Count → `HEART_COUNT` in `Pet.tsx`; color → `.heart-burst__heart` `color`; travel distance → `distance` in the `HEARTS` map (96–140px); duration → the `1400ms` in the `heart-burst` animation.
+
+## Verifying Animations / UI on macOS — `run-companion` Skill
+
+`.claude/skills/run-companion/` is a project skill for launching and driving the built app on macOS (the way the heart burst was verified). Because the app has no headless mode and the interesting moments are transient animations, the skill launches the built app under Playwright, fires the real reminder, and screenshots it.
+
+- **Prereqs:** `npm install playwright-core --no-save` (kept out of `package.json`) + `npm run build` (the driver runs the built `out/`, not the dev server — rebuild after renderer edits).
+- **Live demo (visible window, replays the burst 4×):** `node .claude/skills/run-companion/driver.mjs demo`
+- **REPL:** `node .claude/skills/run-companion/driver.mjs` → `launch`, `remind [msg]` (fires the burst via the real `reminder:show` main→renderer IPC — same production path the usage timer uses), `ss [name]`, `eval <js>`, `quit`.
+- macOS has a real display, so no xvfb; the launched window appears on screen, and `page.screenshot()` renders the transparent window over white so hearts/character are clearly visible.

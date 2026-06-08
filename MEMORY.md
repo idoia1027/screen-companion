@@ -264,11 +264,34 @@ Important UX rule:
 
 Repository: https://github.com/idoia1027/screen-companion (public)
 
-Branch: main — up to date with origin/main.
+Active branch: `chore/mac-dev-support` (macOS dev support + heart-burst animation). PR #1 open against `main`: https://github.com/idoia1027/screen-companion/pull/1
 
-Latest commit: `b960cb4 fix: eliminate CC interaction blocking and reduce animation CPU usage` (2026-06-05)
+Latest commit on branch: `7ccb955 fix: force text presentation for burst hearts (cross-platform color)` (2026-06-08)
 
-Normal `git push` over HTTPS works. No API fallback needed.
+main is still at `b960cb4` (2026-06-05) until PR #1 merges.
+
+On macOS, `git push` uses SSH over port 443 (see PROJECT.md macOS migration note). On Windows, `git push` over HTTPS works. No API fallback needed.
+
+## Heart-Burst Reminder Animation (2026-06-08)
+
+Added a heart-burst that plays when the usage reminder fires (alongside the reminder bounce).
+
+- 14 hearts radiate from the character center in a ring with slight upward drift, peak ~300–500ms, fade by ~1s.
+- Pure CSS keyframes (`heart-burst` in `src/styles/global.css`) + a render layer in `src/components/Pet.tsx`. Hearts precomputed once with per-heart angle/distance/size/delay variation.
+- The layer is `aria-hidden` + `pointer-events: none` — it must never block dragging or button clicks. Do not give it pointer events.
+- Re-triggers automatically on each reminder via the existing `animationKey` remount of `<Pet>` in `App.tsx`. No new state was added.
+- **Cross-platform glyph:** the heart is `❤︎` (U+2764 + U+FE0E) with `font-variant-emoji: text`, forcing text presentation so `color: #ff6b8b` applies. Without it Windows renders a fixed-color emoji heart. Keep both the variation selector and the CSS property — removing either reintroduces the Windows color risk.
+- Consistent with the existing rule: disabling reminders also disables this animation, and must not hide/close the app.
+
+## Verifying Animations on macOS — `run-companion` Skill
+
+`.claude/skills/run-companion/` launches and drives the built app to verify transient animations/UI on macOS (no headless mode, so screenshot the real thing).
+
+- Prereqs: `npm install playwright-core --no-save` + `npm run build` (driver runs built `out/`, not dev server — rebuild after renderer edits).
+- Visible demo: `node .claude/skills/run-companion/driver.mjs demo` (launches window, replays burst 4×).
+- REPL: `node .claude/skills/run-companion/driver.mjs` → `launch`, `remind [msg]` (fires the real `reminder:show` main→renderer IPC — the production path), `ss [name]`, `eval <js>`, `quit`.
+- macOS = real display, no xvfb. `page.screenshot()` renders the transparent window over white, so hearts/character show clearly.
+- Run from repo root (playwright-core resolves from node_modules there); macOS electron binary is at `node_modules/electron/dist/Electron.app/Contents/MacOS/Electron`.
 
 ## Latest User Verification
 
