@@ -1,0 +1,59 @@
+name: Build installers
+
+# Produces the Windows and macOS installers in one run.
+#  - Push a version tag (e.g. `v0.2.1`) → builds both AND publishes them to a
+#    DRAFT GitHub Release (review, then hit "Publish release").
+#  - Run manually (Actions tab → "Run workflow") → builds both and uploads the
+#    installers as downloadable run artifacts, without touching Releases.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Needed so electron-builder can create/upload the draft GitHub Release on tags.
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile (tsc + electron-vite)
+        run: npm run build
+
+      # Package for this runner's OS. On a tag push, --publish always uploads to a
+      # draft GitHub Release (electron-builder reuses the same draft across both
+      # jobs); on manual runs, --publish never just leaves the files in release/.
+      - name: Package${{ github.ref_type == 'tag' && ' + publish' || '' }}
+        run: npx electron-builder --${{ matrix.platform }} --publish ${{ github.ref_type == 'tag' && 'always' || 'never' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No signing certs in CI: build unsigned (mac uses identity:null in package.json).
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload installers as run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-installers
+          path: |
+            release/*.exe
+            release/*.dmg
+          if-no-files-found: error
