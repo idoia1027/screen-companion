@@ -287,3 +287,42 @@ The project now also runs on macOS (Apple Silicon) for day-to-day development. N
   `ssh -T git@github.com` and `git push` both work over this route.
 - **Toolchain verified.** Homebrew (used to install `gh`), Node/npm (clean `npm install`, 0 vulnerabilities), and Claude Code CLI are all working on the Mac. `gh` is authenticated and the SSH public key is registered on GitHub.
 - **screen-companion verified on Apple Silicon.** Electron binary is native `arm64`; `npm run dev` launches the transparent always-on-top companion window with no errors (only the standard dev-mode CSP/deprecation notices). Character renders and `did-finish-load` fires normally.
+
+## Packaging & Distribution (2026-06-09)
+
+Electron is not a cross-platform binary — **each OS needs its own build, made on that
+OS** (a macOS `.dmg` can only be produced on macOS). Builds are unsigned, which is fine
+for personal sharing but makes recipients bypass an OS security warning on first launch
+(macOS: System Settings → Privacy & Security → "Open Anyway"; Windows: SmartScreen →
+"Run anyway"). The running app and all features are identical signed or not — signing only
+removes the install-time friction. Proper signing/notarization needs an Apple Developer
+account ($99/yr) and a Windows code-signing cert.
+
+### Local packaging
+
+```bash
+npm run package:mac    # → release/Screen Companion-<ver>-arm64.dmg  (Apple Silicon only)
+npm run package:win    # → release/Screen Companion Setup <ver>.exe + portable  (run on Windows)
+```
+
+- mac config (`build.mac` in package.json): `dmg` / `arm64`, `identity: null` (skips
+  signing). **arm64 only** — Intel Macs are NOT covered yet; add an `x64`/`universal`
+  target if needed. Icon is `build/icon-mac-512.png` (electron-builder requires ≥512×512;
+  the Windows `icon.png` was only 256×256).
+- **Apple Silicon gotcha:** an unsigned arm64 `.app` won't launch as-is — ad-hoc sign it
+  first: `codesign --force --deep --sign - "release/mac-arm64/Screen Companion.app"`, then
+  `xattr -dr com.apple.quarantine <app>` after copying to /Applications.
+
+### CI — both installers in one run
+
+`.github/workflows/build.yml` builds Windows + macOS together via an OS matrix
+(`windows-latest`, `macos-latest`):
+
+- **Tag push** (`git tag v0.2.1 && git push --tags`) → builds both and publishes them to a
+  **draft GitHub Release** (electron-builder `--publish always`; release tag/name come from
+  the package.json `version`). Review the draft, then hit "Publish release".
+- **Manual run** (Actions tab → Run workflow) → builds both and uploads the installers as
+  run artifacts, without touching Releases.
+- Builds are unsigned in CI (`CSC_IDENTITY_AUTO_DISCOVERY: false`); job has
+  `contents: write` so `GITHUB_TOKEN` can create the release. Publish target is the
+  `build.publish` github config in package.json.

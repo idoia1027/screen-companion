@@ -12,7 +12,8 @@
     "build": "tsc --noEmit && electron-vite build",
     "preview": "electron-vite preview",
     "package:win": "npm run build && electron-builder --win",
-    "package:win:portable": "npm run build && electron-builder --win portable"
+    "package:win:portable": "npm run build && electron-builder --win portable",
+    "package:mac": "npm run build && electron-builder --mac"
   },
   "build": {
     "appId": "local.screen-companion.mvp",
@@ -25,6 +26,13 @@
     "files": [
       "out/**/*",
       "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "idoia1027",
+        "repo": "screen-companion"
+      }
     ],
     "win": {
       "icon": "build/icon.ico",
@@ -52,6 +60,19 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "runAfterFinish": true
+    },
+    "mac": {
+      "icon": "build/icon-mac-512.png",
+      "category": "public.app-category.lifestyle",
+      "identity": null,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
     }
   },
   "dependencies": {
