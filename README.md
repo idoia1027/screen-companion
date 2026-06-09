@@ -16,6 +16,34 @@ The MVP is intentionally not a chatbot, productivity dashboard, browser extensio
 - Randomly rotates through selected companion characters every hour by default.
 - Provides minimal controls for settings, companion size, and closing the app.
 
+## Installing a Downloaded Build
+
+The released installers are **not code-signed**, so the operating system shows a one-time
+security warning the first time you open the app. This is expected — the app is unsigned,
+not unsafe. After you allow it once, it opens normally every time afterward.
+
+### Windows
+
+1. Download and run `Screen Companion Setup <version>.exe` (or the portable `Screen Companion <version>.exe`).
+2. Windows SmartScreen may show a blue dialog: **"Windows protected your PC"** / *Unknown publisher*.
+3. Click **More info**, then click **Run anyway**.
+4. The app installs/launches normally. You won't see this prompt again.
+
+Requirements: Windows 10 or 11, 64-bit. (ARM Windows runs it through x64 emulation.)
+
+### macOS (Apple Silicon)
+
+1. Open the `.dmg` and drag **Screen Companion** to Applications.
+2. The first launch may say the app **"can't be opened"** or is from an unidentified developer.
+3. Go to **System Settings → Privacy & Security**, scroll to the message about Screen Companion, and click **Open Anyway**. Confirm once more if prompted.
+4. It opens normally from then on.
+
+> The macOS build currently targets **Apple Silicon (arm64)** only; Intel Macs are not yet supported.
+
+To remove these prompts entirely would require paid code signing (an Apple Developer ID for
+macOS, a code-signing certificate for Windows). The app's features and behavior are identical
+either way.
+
 ## Custom Companion Images
 
 Users can import an image from Settings with `Import image`.
@@ -121,7 +149,10 @@ The application code is fully cross-platform and runs natively on Apple Silicon.
 - The PowerShell helper scripts: `run-dev.ps1`, `run-release.ps1`, `package-win.ps1`.
 - The Windows packaging scripts: `package:win` and `package:win:portable` (NSIS installer + portable `.exe`).
 
-On macOS you do not need these — use `npm install` and `npm run dev` directly. macOS packaging/distribution is intentionally out of scope for now.
+On macOS you do not need these — use `npm install` and `npm run dev` directly. To build a
+macOS installer, run `npm run package:mac` (produces an unsigned `arm64` `.dmg` in
+`release/`). Both Windows and macOS installers are also built together in CI — see
+`.github/workflows/build.yml`.
 
 ## Build Check
 
