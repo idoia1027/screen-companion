@@ -108,6 +108,16 @@ const App = () => {
     };
   }, [showReminder]);
 
+  // Heart pixels (alpha > 0) are opaque to Electron's OS hit-test regardless of
+  // CSS pointer-events, so they swallow mouse events while animating. Force the
+  // window interactive whenever a reminder is showing so the speech bubble and
+  // character remain clickable throughout the burst animation.
+  useEffect(() => {
+    if (reminderMessage) {
+      window.companionApi.setIgnoreMouseEvents(false);
+    }
+  }, [reminderMessage]);
+
   const saveReminderSettings = useCallback(async (settings: ReminderSettings) => {
     const savedSettings = await window.companionApi.saveReminderSettings(settings);
     setReminderSettings(savedSettings);
