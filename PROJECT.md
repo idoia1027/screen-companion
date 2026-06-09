@@ -242,26 +242,32 @@ with the speech bubble and character, but it makes the **entire 520×620px windo
 non-passthrough** for the whole reminder lifetime — blocking clicks on other windows
 underneath, including their top-right close buttons.
 
-### Correct fix (not yet applied)
+### Correct fix (APPLIED & verified — 2026-06-09)
 
-Revert the `useEffect` workaround. Fix Bug 1 by changing the keyframes so hearts start
-at ~20% of their destination distance (already ~50px away from center) and only fade in
-after moving away from the character area. The character's own pixels remain unobscured,
-`onMouseEnter` fires normally, and `setIgnoreMouseEvents(true, { forward: true })` stays
-as the base state — transparent areas remain passthrough throughout.
+Both layers fixed on `fix/heart-burst-passthrough`:
 
-File to change: `src/styles/global.css` (@keyframes heart-burst, 0% and 18% transforms).
-Also revert the `useEffect` in `src/App.tsx` (~line 111–119).
+- **Bug 1 — keyframe offset (`src/styles/global.css`).** The `@keyframes heart-burst`
+  now keeps hearts at `opacity: 0` while they travel outward, fading them in only after
+  they clear the character. New stops: `0%` (center, invisible) → `22%` (still
+  `opacity: 0`, already ~22% of destination ≈ 50–70px off-center) → `45%` (`opacity: 1`,
+  60% of destination) → `100%` (fade out at full destination). No heart is ever opaque on
+  the character center, so Electron's alpha hit-test never swallows the character.
+- **Bug 2 — reverted the `useEffect`** in `src/App.tsx`. The window stays at its base
+  `setIgnoreMouseEvents(true, { forward: true })`; transparent areas remain passthrough for
+  the whole reminder lifetime, so underlying windows (and their close buttons) stay clickable.
+
+**Verified** via the `run-companion` driver on macOS (launch built app → fire real
+`reminder:show` IPC → sample geometry + screenshot across the burst):
+- Hearts stay `opacity: 0` until ~650ms, then fade in only once ≥66px from the character center.
+- Screenshots show hearts forming a ring *around* the cat; face/body core stay unobscured.
 
 ### Current branch state
-`fix/heart-burst-passthrough` contains the partial fix (Bug 2 approach) plus all the
-animation parameter changes (4200ms, 220–324px spread, min reminder 1 min).
-The correct fix should be applied on this branch before merging to main.
+`fix/heart-burst-passthrough` now contains the full fix plus the animation parameter
+changes (4200ms, 220–324px spread, min reminder 1 min). Ready to merge to main.
 
 ## Next Priorities
 
-1. Apply correct heart burst passthrough fix (keyframe offset, revert useEffect — see above).
-2. Reposition reminder bubble so it does not cover the face.
-3. Persist window position across restarts.
-4. Improve app icon (current is placeholder).
-5. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+1. Reposition reminder bubble so it does not cover the face.
+2. Persist window position across restarts.
+3. Improve app icon (current is placeholder).
+4. Add to BrieflyAI tools tab under Casual category once screenshots are available.

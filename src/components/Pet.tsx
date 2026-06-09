@@ -6,7 +6,7 @@ const HEART_COUNT = 14;
 
 // Pre-compute a radial spray of hearts: each fans out at an even angle around the
 // character's center, with slight per-heart variation in distance/size/delay so the
-// burst feels organic rather than mechanical. A global upward bias (-28px) makes the
+// burst feels organic rather than mechanical. A global upward bias (-56px) makes the
 // hearts drift up as they scatter, which reads as more heart-like than a flat ring.
 const HEARTS = Array.from({ length: HEART_COUNT }, (_, index) => {
   const angle = (index / HEART_COUNT) * Math.PI * 2 - Math.PI / 2;

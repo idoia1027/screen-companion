@@ -480,15 +480,23 @@ button {
     transform: translate(-50%, -50%) scale(0.2);
   }
 
-  18% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(var(--heart-scale, 1));
+  /* Hearts travel outward while still fully transparent, so they clear the
+     character's pixels BEFORE they fade in. This keeps the character center
+     free of opaque (alpha > 0) heart pixels — Electron's transparent-window
+     hit-test is pixel-alpha based, so an opaque heart sitting on the character
+     would swallow the mouse and stop `.pet`'s onMouseEnter from firing. By 22%
+     the heart is ~50px+ off-center; only then does opacity ramp up. */
+  22% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--dx, 0px) * 0.22), calc(-50% + var(--dy, 0px) * 0.22))
+      scale(var(--heart-scale, 1));
   }
 
-  55% {
+  45% {
     opacity: 1;
     transform:
-      translate(calc(-50% + var(--dx, 0px) * 0.85), calc(-50% + var(--dy, 0px) * 0.85))
+      translate(calc(-50% + var(--dx, 0px) * 0.6), calc(-50% + var(--dy, 0px) * 0.6))
       scale(calc(var(--heart-scale, 1) * 1.05));
   }
 
