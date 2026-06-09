@@ -96,6 +96,33 @@ $env:ELECTRON_MIRROR='https://npmmirror.com/mirrors/electron/'
 npm.cmd install
 ```
 
+## Run On macOS
+
+The core app (Electron main, preload, React renderer) is cross-platform. On macOS just install and run:
+
+```bash
+npm install
+npm run dev
+```
+
+This starts the Vite renderer dev server and launches the Electron app, the same as on Windows.
+
+If Electron's binary download fails on your network, retry install with an Electron mirror:
+
+```bash
+export ELECTRON_MIRROR='https://npmmirror.com/mirrors/electron/'
+npm install
+```
+
+### Cross-platform note
+
+The application code is fully cross-platform and runs natively on Apple Silicon. The only Windows-specific parts of this repo are:
+
+- The PowerShell helper scripts: `run-dev.ps1`, `run-release.ps1`, `package-win.ps1`.
+- The Windows packaging scripts: `package:win` and `package:win:portable` (NSIS installer + portable `.exe`).
+
+On macOS you do not need these — use `npm install` and `npm run dev` directly. macOS packaging/distribution is intentionally out of scope for now.
+
 ## Build Check
 
 ```bash
@@ -133,8 +160,8 @@ release/
 Expected Windows outputs:
 
 ```txt
-release/Screen Companion Setup 0.1.0.exe
-release/Screen Companion 0.1.0.exe
+release/Screen Companion Setup 0.2.1.exe
+release/Screen Companion 0.2.1.exe
 release/win-unpacked/Screen Companion.exe
 ```
 

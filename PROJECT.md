@@ -212,9 +212,78 @@ The `setTimeout(0)` gap (vs. the old 50ms) allows Pet→SettingsPanel mouse tran
 
 User-verified: companion running over CC no longer blocks clicks or keyboard input in CC.
 
+## Heart Burst Animation — Interaction Bug Diagnosis (2026-06-09)
+
+### What was added
+A radial heart burst animation fires when the usage reminder appears: 14 hearts
+scatter from the character center, peak ~756ms, then fade out over 4200ms total.
+Branch: `fix/heart-burst-passthrough` (not yet merged to main).
+
+### Root cause — two independent bugs
+
+**Bug 1 (animation design): Hearts appear at full opacity ON the character (18% keyframe)**
+
+The keyframe sequence is:
+- 0%  → opacity 0, position: character center
+- 18% → opacity 1, position: character center  ← all hearts fully visible ON the character
+- 55% → opacity 1, position: 85% of destination
+- 100%→ opacity 0, position: destination
+
+Electron transparent-window hit-testing is pixel-alpha based, NOT CSS `pointer-events` based.
+When hearts sit at alpha > 0 on top of the character, those pixels are "opaque" at the OS
+level. Mouse moves over them are swallowed before `onMouseEnter` on `.pet` can fire, so
+`setIgnoreMouseEvents(false)` is never called and the character becomes unclickable.
+
+**Bug 2 (attempted fix introduced a secondary problem): setIgnoreMouseEvents(false) blocks entire window**
+
+To unblock interaction during the burst, a `useEffect` was added that calls
+`setIgnoreMouseEvents(false)` whenever `reminderMessage` is set. This works for interacting
+with the speech bubble and character, but it makes the **entire 520×620px window
+non-passthrough** for the whole reminder lifetime — blocking clicks on other windows
+underneath, including their top-right close buttons.
+
+### Correct fix (APPLIED & verified — 2026-06-09)
+
+Both layers fixed on `fix/heart-burst-passthrough`:
+
+- **Bug 1 — keyframe offset (`src/styles/global.css`).** The `@keyframes heart-burst`
+  now keeps hearts at `opacity: 0` while they travel outward, fading them in only after
+  they clear the character. New stops: `0%` (center, invisible) → `22%` (still
+  `opacity: 0`, already ~22% of destination ≈ 50–70px off-center) → `45%` (`opacity: 1`,
+  60% of destination) → `100%` (fade out at full destination). No heart is ever opaque on
+  the character center, so Electron's alpha hit-test never swallows the character.
+- **Bug 2 — reverted the `useEffect`** in `src/App.tsx`. The window stays at its base
+  `setIgnoreMouseEvents(true, { forward: true })`; transparent areas remain passthrough for
+  the whole reminder lifetime, so underlying windows (and their close buttons) stay clickable.
+
+**Verified** via the `run-companion` driver on macOS (launch built app → fire real
+`reminder:show` IPC → sample geometry + screenshot across the burst):
+- Hearts stay `opacity: 0` until ~650ms, then fade in only once ≥66px from the character center.
+- Screenshots show hearts forming a ring *around* the cat; face/body core stay unobscured.
+
+### Current branch state
+`fix/heart-burst-passthrough` now contains the full fix plus the animation parameter
+changes (4200ms, 220–324px spread, min reminder 1 min). Ready to merge to main.
+
 ## Next Priorities
 
 1. Reposition reminder bubble so it does not cover the face.
 2. Persist window position across restarts.
 3. Improve app icon (current is placeholder).
 4. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+
+## macOS Migration Note (2026-06-07)
+
+The project now also runs on macOS (Apple Silicon) for day-to-day development. Notes:
+
+- **Mac dev environment set up and verified.** `npm install` + `npm run dev` run the app directly on macOS; no Windows-only steps required. See README "Run On macOS".
+- **GitHub SSH over port 443 workaround.** On this network, `github.com:22` was intercepted (resolved to a bogus `198.18.0.x` address) and SSH timed out. Fixed by routing GitHub SSH through `ssh.github.com:443` via `~/.ssh/config`:
+  ```
+  Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+  ```
+  `ssh -T git@github.com` and `git push` both work over this route.
+- **Toolchain verified.** Homebrew (used to install `gh`), Node/npm (clean `npm install`, 0 vulnerabilities), and Claude Code CLI are all working on the Mac. `gh` is authenticated and the SSH public key is registered on GitHub.
+- **screen-companion verified on Apple Silicon.** Electron binary is native `arm64`; `npm run dev` launches the transparent always-on-top companion window with no errors (only the standard dev-mode CSP/deprecation notices). Character renders and `did-finish-load` fires normally.

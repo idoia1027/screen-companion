@@ -13,7 +13,7 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
 };
 
 export const REMINDER_TRIGGER_RANGE = {
-  min: 5,
+  min: 1,
   max: 240,
 };
 

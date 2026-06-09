@@ -448,6 +448,66 @@ button {
     idle-float 4.5s ease-in-out 720ms infinite;
 }
 
+.heart-burst {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.heart-burst__heart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 28px;
+  line-height: 1;
+  /* Force text (not emoji) presentation so `color` wins on every platform;
+     pairs with the U+FE0E variation selector on the glyph itself. */
+  font-variant-emoji: text;
+  color: #ff6b8b;
+  text-shadow: 0 2px 8px rgba(255, 107, 139, 0.55);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: heart-burst 4200ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--delay, 0ms) forwards;
+}
+
+@keyframes heart-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+
+  /* Hearts travel outward while still fully transparent, so they clear the
+     character's pixels BEFORE they fade in. This keeps the character center
+     free of opaque (alpha > 0) heart pixels — Electron's transparent-window
+     hit-test is pixel-alpha based, so an opaque heart sitting on the character
+     would swallow the mouse and stop `.pet`'s onMouseEnter from firing. By 22%
+     the heart is ~50px+ off-center; only then does opacity ramp up. */
+  22% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--dx, 0px) * 0.22), calc(-50% + var(--dy, 0px) * 0.22))
+      scale(var(--heart-scale, 1));
+  }
+
+  45% {
+    opacity: 1;
+    transform:
+      translate(calc(-50% + var(--dx, 0px) * 0.6), calc(-50% + var(--dy, 0px) * 0.6))
+      scale(calc(var(--heart-scale, 1) * 1.05));
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px) - 36px))
+      scale(calc(var(--heart-scale, 1) * 1.15));
+  }
+}
+
 .pet--switching .pet__image {
   animation: character-switch 440ms ease;
 }
