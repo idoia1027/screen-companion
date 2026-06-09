@@ -10,10 +10,10 @@ const HEART_COUNT = 14;
 // hearts drift up as they scatter, which reads as more heart-like than a flat ring.
 const HEARTS = Array.from({ length: HEART_COUNT }, (_, index) => {
   const angle = (index / HEART_COUNT) * Math.PI * 2 - Math.PI / 2;
-  const distance = 96 + (index % 3) * 22;
+  const distance = 220 + (index % 3) * 52;
   return {
     dx: `${Math.cos(angle) * distance}px`,
-    dy: `${Math.sin(angle) * distance - 28}px`,
+    dy: `${Math.sin(angle) * distance - 56}px`,
     delay: `${(index % 5) * 55}ms`,
     scale: 0.9 + (index % 3) * 0.3,
   };
