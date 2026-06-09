@@ -2,7 +2,8 @@
 
 ## Product Definition
 
-Screen Companion is a lightweight Windows desktop companion.
+Screen Companion is a lightweight desktop companion. It originated on Windows and now also
+runs and ships on macOS (Apple Silicon).
 
 It is a transparent, frameless, always-on-top Electron window that displays a local pre-cut transparent character image. The character should feel like it is sitting directly on the desktop, not inside a rectangular photo frame or productivity widget.
 
@@ -60,7 +61,7 @@ Implemented and currently considered working:
 - Development-only test reminder flow
 - Reminder speech bubble with dismiss `X`
 - Hover-only companion actions: `SET` and `X` appear only when hovering the character area
-- Windows installer, portable exe, and `win-unpacked` packaging output
+- Packaging: Windows installer + portable exe (`package:win`) and macOS arm64 `.dmg` (`package:mac`); both also built together in CI
 
 Important implementation details:
 
@@ -83,43 +84,33 @@ Current expected main-view behavior:
 
 ## Latest Verified State
 
-All features implemented and user-verified as of 2026-06-05:
+All features implemented and user-verified. Latest milestone: **v0.3.0 released 2026-06-09**
+(heart-burst reminder + macOS support + dual-platform CI).
 
 - Transparent frameless always-on-top window, character draggable, hover-only controls
-- Continuous screen-usage reminder (powerMonitor, 15s poll, user-configurable)
+- Continuous screen-usage reminder (powerMonitor, 15s poll, user-configurable; min interval now 1 min)
 - Custom character import (PNG/WebP/GIF/JPG, screen-companion-character:// protocol)
 - Character random rotation (default 60min, configurable pool)
 - CC interaction blocking resolved: companion no longer blocks clicks or keyboard in apps behind it
+- Heart-burst reminder animation, with the passthrough/clickability fix (see "Heart Burst … Bug Diagnosis")
 - CSS animation runs on GPU (will-change: translate, drop-shadow on same compositing layer)
+- Runs and packages natively on macOS Apple Silicon as well as Windows
 
-Current packaging:
+### Distribution (as of v0.3.0)
 
-- Latest build: 2026-06-05 15:24, commit `b960cb4`
 - Repo: https://github.com/idoia1027/screen-companion (public)
-- Installer: `release/Screen Companion Setup 0.2.1.exe`
-- Portable: `release/Screen Companion 0.2.1.exe`
+- **Public release (stable download link for the tools-library card):**
+  https://github.com/idoia1027/screen-companion/releases/latest
+- v0.3.0 published assets (built by CI, **unsigned**):
+  - Windows installer: `Screen-Companion-Setup-0.3.0.exe`
+  - Windows portable: `Screen-Companion-0.3.0.exe`
+  - macOS (Apple Silicon): `Screen-Companion-0.3.0-arm64.dmg`
+- How to cut a new release: bump `version` in package.json → merge to main → `git tag vX.Y.Z && git push origin vX.Y.Z`. CI builds both platforms and creates a **draft** Release; review, then publish (or `gh release edit vX.Y.Z --draft=false --latest`). See "Packaging & Distribution".
+- Listing target: BrieflyAI / yt-x-assist tools tab, **Casual** category (project intro + recording handed off in a separate workspace conversation).
 
-Latest packaging outputs:
-
-```txt
-release/Screen Companion Setup 0.2.1.exe
-release/Screen Companion 0.2.1.exe
-release/win-unpacked/Screen Companion.exe
-```
-
-Use for distribution:
-
-```txt
-release/Screen Companion Setup 0.2.1.exe
-```
-
-Use for fast local testing:
-
-```txt
-release/win-unpacked/Screen Companion.exe
-```
-
-Do not distribute only `release/win-unpacked/Screen Companion.exe` by itself. The whole `win-unpacked` folder is required for that form.
+For fast LOCAL testing (not for distribution) you can still run the unpacked build, but the
+whole `release/<platform>-unpacked` (or `mac-arm64`) folder is required — never ship a bare
+unpacked executable by itself.
 
 ## Why Today Was Inefficient
 
@@ -269,8 +260,10 @@ changes (4200ms, 220–324px spread, min reminder 1 min). Ready to merge to main
 
 1. Reposition reminder bubble so it does not cover the face.
 2. Persist window position across restarts.
-3. Improve app icon (current is placeholder).
-4. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+3. Improve app icon (current is a placeholder; `build/icon-mac-512.png` is just the upscaled Windows icon).
+4. Tools-library listing (yt-x-assist, Casual) — in progress: project intro + screen recording handed off to a separate workspace conversation; v0.3.0 release link is live.
+5. (Optional) Add an Intel Mac target (`x64`/`universal`) — current macOS build is arm64 only.
+6. (Optional) Code signing + notarization to remove the first-run security prompt on both platforms.
 
 ## macOS Migration Note (2026-06-07)
 
