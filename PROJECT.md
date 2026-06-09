@@ -212,9 +212,56 @@ The `setTimeout(0)` gap (vs. the old 50ms) allows Pet→SettingsPanel mouse tran
 
 User-verified: companion running over CC no longer blocks clicks or keyboard input in CC.
 
+## Heart Burst Animation — Interaction Bug Diagnosis (2026-06-09)
+
+### What was added
+A radial heart burst animation fires when the usage reminder appears: 14 hearts
+scatter from the character center, peak ~756ms, then fade out over 4200ms total.
+Branch: `fix/heart-burst-passthrough` (not yet merged to main).
+
+### Root cause — two independent bugs
+
+**Bug 1 (animation design): Hearts appear at full opacity ON the character (18% keyframe)**
+
+The keyframe sequence is:
+- 0%  → opacity 0, position: character center
+- 18% → opacity 1, position: character center  ← all hearts fully visible ON the character
+- 55% → opacity 1, position: 85% of destination
+- 100%→ opacity 0, position: destination
+
+Electron transparent-window hit-testing is pixel-alpha based, NOT CSS `pointer-events` based.
+When hearts sit at alpha > 0 on top of the character, those pixels are "opaque" at the OS
+level. Mouse moves over them are swallowed before `onMouseEnter` on `.pet` can fire, so
+`setIgnoreMouseEvents(false)` is never called and the character becomes unclickable.
+
+**Bug 2 (attempted fix introduced a secondary problem): setIgnoreMouseEvents(false) blocks entire window**
+
+To unblock interaction during the burst, a `useEffect` was added that calls
+`setIgnoreMouseEvents(false)` whenever `reminderMessage` is set. This works for interacting
+with the speech bubble and character, but it makes the **entire 520×620px window
+non-passthrough** for the whole reminder lifetime — blocking clicks on other windows
+underneath, including their top-right close buttons.
+
+### Correct fix (not yet applied)
+
+Revert the `useEffect` workaround. Fix Bug 1 by changing the keyframes so hearts start
+at ~20% of their destination distance (already ~50px away from center) and only fade in
+after moving away from the character area. The character's own pixels remain unobscured,
+`onMouseEnter` fires normally, and `setIgnoreMouseEvents(true, { forward: true })` stays
+as the base state — transparent areas remain passthrough throughout.
+
+File to change: `src/styles/global.css` (@keyframes heart-burst, 0% and 18% transforms).
+Also revert the `useEffect` in `src/App.tsx` (~line 111–119).
+
+### Current branch state
+`fix/heart-burst-passthrough` contains the partial fix (Bug 2 approach) plus all the
+animation parameter changes (4200ms, 220–324px spread, min reminder 1 min).
+The correct fix should be applied on this branch before merging to main.
+
 ## Next Priorities
 
-1. Reposition reminder bubble so it does not cover the face.
-2. Persist window position across restarts.
-3. Improve app icon (current is placeholder).
-4. Add to BrieflyAI tools tab under Casual category once screenshots are available.
+1. Apply correct heart burst passthrough fix (keyframe offset, revert useEffect — see above).
+2. Reposition reminder bubble so it does not cover the face.
+3. Persist window position across restarts.
+4. Improve app icon (current is placeholder).
+5. Add to BrieflyAI tools tab under Casual category once screenshots are available.
